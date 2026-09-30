@@ -656,12 +656,13 @@ body{display:block}
 
 
 /* MENU PRINCIPAL SANISTOCK — 4 BOUTONS */
-.homeButtons4{position:absolute;z-index:20;left:5%;right:5%;top:52%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-.homeButton4{position:relative;overflow:hidden;border:0;border-radius:16px;padding:12px 10px;min-height:96px;color:#fff;font-weight:900;box-shadow:0 7px 18px rgba(0,0,0,.28);cursor:pointer;touch-action:manipulation;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;transform-origin:center}
+.homeButtons4{position:absolute;z-index:20;left:4%;right:4%;top:52%;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px}
+.homeButton4{position:relative;overflow:hidden;border:0;border-radius:16px;padding:10px 7px;min-height:92px;color:#fff;font-weight:900;box-shadow:0 7px 18px rgba(0,0,0,.28);cursor:pointer;touch-action:manipulation;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;transform-origin:center}
 .homeButton4 .homeButtonTitle{font-size:clamp(12px,1.25vw,18px);line-height:1.1}.homeButton4 .homeButtonDesc{font-size:clamp(8px,.78vw,11px);font-weight:600;line-height:1.2;opacity:.95;max-width:100%}
 .homeButton4.stock4{background:#1479e8}.homeButton4.disinfection4{background:#e53935}.homeButton4.medication4{background:#2eaf5d}.homeButton4.settings4{background:#6b7280}
 /* Les boutons principaux restent fixes : aucune animation au repos ni au clic. */
-@media(max-width:700px){.homeButtons4{left:3%;right:3%;gap:7px;top:53%}.homeButton4{min-height:88px;padding:8px 5px;border-radius:12px;gap:4px}.homeButton4 .homeButtonTitle{font-size:10px}.homeButton4 .homeButtonDesc{font-size:7.5px;line-height:1.15}.homeButtonIcon{font-size:1.3em}}
+@media(max-width:900px){.homeButtons4{grid-template-columns:repeat(3,minmax(0,1fr));left:4%;right:4%;gap:8px;top:52%}}
+@media(max-width:700px){.homeButtons4{left:3%;right:3%;gap:7px;top:53%;grid-template-columns:repeat(3,minmax(0,1fr))}.homeButton4{min-height:88px;padding:8px 5px;border-radius:12px;gap:4px}.homeButton4 .homeButtonTitle{font-size:10px}.homeButton4 .homeButtonDesc{font-size:7.5px;line-height:1.15}.homeButtonIcon{font-size:1.3em}}
 
 .saniVersion{position:absolute;left:50%;bottom:38px;transform:translateX(-50%);z-index:20;color:#fff;background:rgba(0,0,0,.48);padding:4px 10px;border-radius:10px;font-size:11px;font-weight:600;letter-spacing:.2px;pointer-events:none}
 
@@ -720,7 +721,7 @@ body{display:block}
 }
 
 /* ===== MÉMO / DOCUMENTS ===== */
-.homeButton4.memoDocuments4{background:#f2c400}
+.homeButton4.memoDocuments4{background:#f2c400}.homeButton4.checklist4{background:#29B6D2}
 </style>
 
 <style>
@@ -1530,6 +1531,11 @@ body{display:block}
     <span class="homeButtonTitle">MÉMO / DOCUMENTS</span>
     <span class="homeButtonDesc">Documents et procédures</span>
   </button>
+  <button type="button" class="homeButton4 checklist4" onclick="showPage('checklistPage')" aria-label="Checklist">
+    <span class="homeButtonIcon">☑️</span>
+    <span class="homeButtonTitle">CHECKLIST</span>
+    <span class="homeButtonDesc">Vérifications quotidiennes</span>
+  </button>
   </div>
   <div id="homeInformation" class="homeInfo" aria-live="polite"></div>
 <div id="homeInformationModal" class="homeInfoModal" aria-hidden="true">
@@ -1629,6 +1635,41 @@ body{display:block}
 </section>
 </main>
 <script>
+const CHECKLIST_ITEMS=[
+  'Vérifier la propreté générale du véhicule',
+  'Vérifier le matériel et les consommables',
+  'Vérifier l’oxygène et le matériel respiratoire',
+  'Vérifier le DSA et son matériel',
+  'Vérifier les sacs et le matériel d’intervention',
+  'Vérifier le stock minimum',
+  'Effectuer la désinfection du véhicule'
+];
+function renderChecklist(){
+  const box=document.getElementById('checklistItems');
+  if(!box) return;
+  const state=JSON.parse(localStorage.getItem('sanistockChecklist')||'{}');
+  box.innerHTML=CHECKLIST_ITEMS.map(function(txt,i){
+    const checked=!!state[i];
+    return '<label class="checkItem '+(checked?'done':'')+'"><input type="checkbox" '+(checked?'checked':'')+' onchange="toggleChecklist('+i+',this.checked)"><span>'+escapeHtml(txt)+'</span></label>';
+  }).join('');
+}
+function toggleChecklist(i,val){
+  const state=JSON.parse(localStorage.getItem('sanistockChecklist')||'{}');
+  state[i]=!!val;
+  localStorage.setItem('sanistockChecklist',JSON.stringify(state));
+  renderChecklist();
+}
+function cocherChecklist(){
+  const state={};
+  CHECKLIST_ITEMS.forEach(function(_,i){state[i]=true});
+  localStorage.setItem('sanistockChecklist',JSON.stringify(state));
+  renderChecklist();
+}
+function resetChecklist(){
+  localStorage.removeItem('sanistockChecklist');
+  renderChecklist();
+}
+
 function showPage(id){
  var actuelle=document.querySelector('.screen.active');
  var suivante=document.getElementById(id);
@@ -1651,6 +1692,7 @@ function showPage(id){
  if(id==='stockPage') chargerStock();
  if(id==='memoDocumentsPage') setTimeout(function(){ if(typeof chargerDocumentsPublic==='function') chargerDocumentsPublic(); },100);
  if(id==='medicationPage') setTimeout(function(){ if(typeof renderMedicationMemo==='function') renderMedicationMemo(); },0);
+ if(id==='checklistPage') setTimeout(renderChecklist,0);
 
  setTimeout(function(){
    if(actuelle){
@@ -2631,54 +2673,12 @@ function ajouterDocumentFichierUI(){
   }
 
   info.textContent='📤 Préparation de '+file.name+'…';
-
-  // On écoute la réponse réelle envoyée par doPost depuis l'iframe.
-  // Avant cette correction, le simple "load" de l'iframe était interprété
-  // comme une réussite même lorsque Apps Script renvoyait success:false.
-  const messageHandler=function(event){
-    const data=event && event.data;
-    if(!data || data.source!=='SaniStockUpload') return;
-
-    window.removeEventListener('message',messageHandler);
-    termine=true;
-
-    if(data.success){
-      info.textContent='✅ Document enregistré dans Documents.';
-      nettoyer();
-      if(inputDoc) inputDoc.value='';
-      if(inputPhoto) inputPhoto.value='';
-      const nomInput=document.getElementById('docNom');
-      if(nomInput) nomInput.value='';
-      afficherChoixDocument_('Aucun fichier choisi.');
-      chargerDocumentsAdmin();
-      setTimeout(function(){info.textContent='';},4000);
-    }else{
-      info.textContent='❌ '+(data.error||'Le document n’a pas été enregistré.');
-      nettoyer();
-    }
-  };
-
   const reader=new FileReader();
-  let iframe=null;
-  let form=null;
-  let termine=false;
-  let timeoutId=null;
-
-  const nettoyer=function(){
-    if(timeoutId) clearTimeout(timeoutId);
-    setTimeout(function(){
-      if(form && form.parentNode) form.parentNode.removeChild(form);
-      if(iframe && iframe.parentNode) iframe.parentNode.removeChild(iframe);
-    },500);
-  };
-
-  window.addEventListener('message',messageHandler);
 
   reader.onload=function(){
     try{
       const result=String(reader.result||'');
       const base64=result.indexOf(',')>=0?result.split(',')[1]:result;
-
       const payload=Object.assign({
         rubriqueId:rubriqueId,
         nom:nom,
@@ -2688,13 +2688,13 @@ function ajouterDocumentFichierUI(){
       },donneesAccesGestion());
 
       const iframeName='sanistockUploadFrame_'+Date.now();
-      iframe=document.createElement('iframe');
+      const iframe=document.createElement('iframe');
       iframe.name=iframeName;
       iframe.id=iframeName;
       iframe.style.display='none';
       document.body.appendChild(iframe);
 
-      form=document.createElement('form');
+      const form=document.createElement('form');
       form.method='POST';
       form.action=window.SANISTOCK_API_URL;
       form.target=iframeName;
@@ -2712,33 +2712,48 @@ function ajouterDocumentFichierUI(){
       addField('data',JSON.stringify(payload));
       document.body.appendChild(form);
 
+      let termine=false;
+      const nettoyer=function(){
+        setTimeout(function(){
+          if(form.parentNode) form.parentNode.removeChild(form);
+          if(iframe.parentNode) iframe.parentNode.removeChild(iframe);
+        },1000);
+      };
+
+      iframe.addEventListener('load',function(){
+        if(termine) return;
+        termine=true;
+        info.textContent='✅ Document envoyé.';
+        nettoyer();
+        if(inputDoc) inputDoc.value='';
+        if(inputPhoto) inputPhoto.value='';
+        document.getElementById('docNom').value='';
+        afficherChoixDocument_('Aucun fichier choisi.');
+        chargerDocumentsAdmin();
+        setTimeout(function(){info.textContent='';},3000);
+      });
+
       info.textContent='📤 Envoi de '+file.name+'…';
       form.submit();
 
-      timeoutId=setTimeout(function(){
+      // Sécurité : si Google ne renvoie pas le chargement de l’iframe,
+      // on ne laisse pas l’interface bloquée indéfiniment.
+      setTimeout(function(){
         if(!termine){
-          window.removeEventListener('message',messageHandler);
           termine=true;
-          info.textContent='❌ Aucune réponse de Google Apps Script après 30 secondes.';
+          info.textContent='⚠️ L’envoi est peut-être terminé. Actualise la liste des documents.';
           nettoyer();
+          chargerDocumentsAdmin();
         }
       },30000);
 
     }catch(err){
-      window.removeEventListener('message',messageHandler);
       info.textContent='❌ Erreur pendant l’envoi : '+(err&&err.message?err.message:err);
-      nettoyer();
     }
   };
-
-  reader.onerror=function(){
-    window.removeEventListener('message',messageHandler);
-    info.textContent='❌ Impossible de lire le fichier.';
-  };
-
+  reader.onerror=function(){info.textContent='❌ Impossible de lire le fichier.';};
   reader.readAsDataURL(file);
 }
-
 function supprimerDocumentUI(id){
   if(!confirm('Supprimer ce document ?')) return;
   sendJsonp('supprimerDocument',
@@ -8655,6 +8670,40 @@ if ("serviceWorker" in navigator) {
 
 
 
+
+<section id="checklistPage" class="screen page" aria-label="Checklist">
+  <div class="checklistWrap">
+    <div class="checklistHead">
+      <button type="button" class="back" onclick="showPage('homePage')">← Retour</button>
+      <h1>☑️ Checklist</h1>
+    </div>
+    <div class="checklistCard">
+      <div class="checklistIntro">Vérifications quotidiennes</div>
+      <div id="checklistItems"></div>
+      <div class="checklistActions">
+        <button type="button" onclick="cocherChecklist()">✓ Tout cocher</button>
+        <button type="button" onclick="resetChecklist()">↺ Réinitialiser</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+#checklistPage{background:#edf5fa;min-height:100vh;color:#173f68}
+.checklistWrap{max-width:650px;margin:0 auto}
+.checklistHead{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.checklistHead h1{flex:1;margin:0;text-align:center;color:#073f91;font-size:22px}
+.checklistCard{background:#fff;border-radius:20px;padding:16px;box-shadow:0 7px 22px rgba(0,45,90,.10)}
+.checklistIntro{text-align:center;color:#29B6D2;font-weight:900;font-size:15px;margin-bottom:12px}
+.checkItem{display:flex;align-items:center;gap:11px;padding:12px 9px;border-bottom:1px solid #e7eef3;cursor:pointer}
+.checkItem:last-child{border-bottom:0}
+.checkItem input{width:21px;height:21px;accent-color:#29B6D2;flex:none}
+.checkItem span{font-weight:700;font-size:13px}
+.checkItem.done span{text-decoration:line-through;color:#8293a0}
+.checklistActions{display:flex;gap:8px;margin-top:14px}
+.checklistActions button{flex:1;border:0;border-radius:11px;padding:11px;background:#29B6D2;color:#fff;font-weight:900;cursor:pointer}
+.checklistActions button+button{background:#dce7ed;color:#40576b}
+</style>
 
 <section id="memoDocumentsPage" class="screen" aria-label="Mémo Documents">
   <div class="pageHeader">
