@@ -2595,49 +2595,88 @@ function ajouterDocumentFichierUI(){
     alert('⚠️ Le fichier doit faire moins de 1,5 Mo. Pour une photo, utilise une photo compressée.');return;
   }
 
-  info.textContent='📤 Préparation du fichier…';
+  info.textContent='📤 Préparation de '+file.name+'…';
   const reader=new FileReader();
-  reader.onload=function(){
-    const result=String(reader.result||'');
-    const base64=result.indexOf(',')>=0?result.split(',')[1]:result;
-    info.textContent='📤 Envoi de '+file.name+'…';
-    const payload=Object.assign({
-      rubriqueId:rubriqueId,
-      nom:nom,
-      fileName:file.name,
-      mimeType:file.type || 'application/octet-stream',
-      base64:base64
-    },donneesAccesGestion());
 
-    /*
-     * Depuis GitHub Pages, google.script.run n'est pas disponible.
-     * L'upload passe donc par doPost() de l'API Apps Script.
-     * no-cors permet l'envoi cross-origin sans bloquer le POST.
-     */
-    fetch(API_URL,{
-      method:'POST',
-      mode:'no-cors',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body:JSON.stringify({
-        action:'ajouterDocumentFichier',
-        data:payload
-      })
-    }).then(function(){
-      document.getElementById('docNom').value='';
-      if(inputDoc) inputDoc.value='';
-      if(inputPhoto) inputPhoto.value='';
-      afficherChoixDocument_('Aucun fichier choisi.');
-      info.textContent='✅ Document envoyé.';
-      chargerDocumentsAdmin();
-      setTimeout(function(){info.textContent='';},3000);
-    }).catch(function(err){
-      info.textContent='❌ Connexion à Google Apps Script impossible : '+(err&&err.message?err.message:err);
-    });
+  reader.onload=function(){
+    try{
+      const result=String(reader.result||'');
+      const base64=result.indexOf(',')>=0?result.split(',')[1]:result;
+      const payload=Object.assign({
+        rubriqueId:rubriqueId,
+        nom:nom,
+        fileName:file.name,
+        mimeType:file.type || 'application/octet-stream',
+        base64:base64
+      },donneesAccesGestion());
+
+      const iframeName='sanistockUploadFrame_'+Date.now();
+      const iframe=document.createElement('iframe');
+      iframe.name=iframeName;
+      iframe.id=iframeName;
+      iframe.style.display='none';
+      document.body.appendChild(iframe);
+
+      const form=document.createElement('form');
+      form.method='POST';
+      form.action=API_URL;
+      form.target=iframeName;
+      form.style.display='none';
+
+      function addField(name,value){
+        const input=document.createElement('input');
+        input.type='hidden';
+        input.name=name;
+        input.value=String(value==null?'':value);
+        form.appendChild(input);
+      }
+
+      addField('action','ajouterDocumentFichier');
+      addField('data',JSON.stringify(payload));
+      document.body.appendChild(form);
+
+      let termine=false;
+      const nettoyer=function(){
+        setTimeout(function(){
+          if(form.parentNode) form.parentNode.removeChild(form);
+          if(iframe.parentNode) iframe.parentNode.removeChild(iframe);
+        },1000);
+      };
+
+      iframe.addEventListener('load',function(){
+        if(termine) return;
+        termine=true;
+        info.textContent='✅ Document envoyé.';
+        nettoyer();
+        if(inputDoc) inputDoc.value='';
+        if(inputPhoto) inputPhoto.value='';
+        document.getElementById('docNom').value='';
+        afficherChoixDocument_('Aucun fichier choisi.');
+        chargerDocumentsAdmin();
+        setTimeout(function(){info.textContent='';},3000);
+      });
+
+      info.textContent='📤 Envoi de '+file.name+'…';
+      form.submit();
+
+      // Sécurité : si Google ne renvoie pas le chargement de l’iframe,
+      // on ne laisse pas l’interface bloquée indéfiniment.
+      setTimeout(function(){
+        if(!termine){
+          termine=true;
+          info.textContent='⚠️ L’envoi est peut-être terminé. Actualise la liste des documents.';
+          nettoyer();
+          chargerDocumentsAdmin();
+        }
+      },30000);
+
+    }catch(err){
+      info.textContent='❌ Erreur pendant l’envoi : '+(err&&err.message?err.message:err);
+    }
   };
   reader.onerror=function(){info.textContent='❌ Impossible de lire le fichier.';};
   reader.readAsDataURL(file);
 }
-
 function supprimerDocumentUI(id){
   if(!confirm('Supprimer ce document ?')) return;
   google.script.run
