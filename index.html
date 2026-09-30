@@ -2734,30 +2734,41 @@ function ajouterDocumentFichierUI(){
         },1000);
       };
 
-      iframe.addEventListener('load',function(){
+      // Le POST est exécuté dans une iframe. Apps Script renvoie maintenant
+      // un message sécurisé à la page par postMessage : succès OU erreur réelle.
+      const messageHandler=function(event){
+        if(event.origin !== window.location.origin) return;
+        const d=event.data||{};
+        if(d.sanistockUpload !== 'SANISTOCK_UPLOAD') return;
         if(termine) return;
         termine=true;
-        info.textContent='✅ Document envoyé.';
-        nettoyer();
-        if(inputDoc) inputDoc.value='';
-        if(inputPhoto) inputPhoto.value='';
-        document.getElementById('docNom').value='';
-        afficherChoixDocument_('Aucun fichier choisi.');
-        chargerDocumentsAdmin();
-        setTimeout(function(){info.textContent='';},3000);
-      });
+        window.removeEventListener('message',messageHandler);
+        if(d.success){
+          info.textContent='✅ Document ajouté dans « Documents ».';
+          nettoyer();
+          if(inputDoc) inputDoc.value='';
+          if(inputPhoto) inputPhoto.value='';
+          document.getElementById('docNom').value='';
+          afficherChoixDocument_('Aucun fichier choisi.');
+          chargerDocumentsAdmin();
+          setTimeout(function(){info.textContent='';},3000);
+        }else{
+          info.textContent='❌ '+String(d.error||'L’ajout du document a échoué.');
+          nettoyer();
+        }
+      };
+      window.addEventListener('message',messageHandler);
 
       info.textContent='📤 Envoi de '+file.name+'…';
       form.submit();
 
-      // Sécurité : si Google ne renvoie pas le chargement de l’iframe,
-      // on ne laisse pas l’interface bloquée indéfiniment.
+      // Sécurité : si Google ne renvoie aucune réponse après 30 s.
       setTimeout(function(){
         if(!termine){
           termine=true;
-          info.textContent='⚠️ L’envoi est peut-être terminé. Actualise la liste des documents.';
+          window.removeEventListener('message',messageHandler);
+          info.textContent='⚠️ Aucune réponse du serveur. Vérifie le déploiement Apps Script DEV.';
           nettoyer();
-          chargerDocumentsAdmin();
         }
       },30000);
 
