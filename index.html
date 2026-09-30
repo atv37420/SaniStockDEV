@@ -671,12 +671,12 @@ body{display:block}
 .memoDocType{font-size:11px;color:#71879a;margin-top:3px}
 .memoDocOpen{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;background:#1479e8;color:#fff;font-weight:900;border-radius:10px;padding:10px 13px;white-space:nowrap}
 .memoEmpty{background:#fff;border-radius:16px;padding:28px;text-align:center;color:#71879a}
-.docAdminRubrique{background:#fff;border:1px solid #dbe5ee;border-radius:14px;padding:14px;margin:10px 0}
+.docAdminRubrique{background:#fff;border:1px solid #dbe5ee;border-radius:14px;padding:14px;margin:10px 0;position:relative;z-index:1000;pointer-events:auto}
 .docAdminHead{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .docAdminDocs{margin-top:10px}
 .docAdminDoc{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid #edf2f6}
 .docAdminActions{display:flex;gap:6px;flex-wrap:wrap}
-.docSmallBtn{border:0;border-radius:9px;padding:8px 10px;font-weight:800;cursor:pointer;position:relative;z-index:99999;pointer-events:auto;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.docSmallBtn{border:0;border-radius:9px;padding:8px 10px;font-weight:800;cursor:pointer;position:relative;z-index:2147483647!important;pointer-events:auto!important;touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none}
 .docSmallBtn.add{background:#1479e8;color:#fff}
 .docSmallBtn.delete{background:#f3d8d8;color:#9b2020}
 @media(max-width:700px){.memoDocCard{align-items:flex-start;flex-direction:column}.memoDocOpen{width:100%}.docAdminHead{align-items:flex-start;flex-direction:column}}
@@ -2261,23 +2261,58 @@ function chargerDocumentsAdminUI(){
   const box=document.getElementById('documentsAdminList');
   if(!box) return;
   box.innerHTML='<div class="settingsMsg">Chargement…</div>';
+
   google.script.run.withSuccessHandler(function(data){
     data=data||{rubriques:[],documents:[]};
     const rubriques=Array.isArray(data.rubriques)?data.rubriques:[];
     const documents=Array.isArray(data.documents)?data.documents:[];
+
     if(!rubriques.length){
       box.innerHTML='<div class="settingsMsg">Aucune rubrique. Clique sur « Nouvelle rubrique » pour commencer.</div>';
       return;
     }
+
     box.innerHTML=rubriques.map(function(r){
+      const rid=escapeAttr_(String(r.id));
       const docs=documents.filter(function(d){return String(d.rubriqueId)===String(r.id);});
-      return '<div class="docAdminRubrique"><div class="docAdminHead"><strong>📁 '+escapeHtml(r.nom)+'</strong>'+
-        '<div class="docAdminActions"><button type="button" class="docSmallBtn add" style="position:relative;z-index:99999;pointer-events:auto;touch-action:manipulation;cursor:pointer;" onclick="event.preventDefault();event.stopPropagation();ajouterDocumentUI('+JSON.stringify(String(r.id))+')">＋ Document</button>'+
-        '<button class="docSmallBtn delete" onclick="supprimerRubriqueDocumentUI('+JSON.stringify(String(r.id))+')">🗑️ Rubrique</button></div></div>'+
-        '<div class="docAdminDocs">'+(docs.length ? docs.map(function(d){
-          return '<div class="docAdminDoc"><span>📄 '+escapeHtml(d.nom)+'</span><button class="docSmallBtn delete" onclick="supprimerDocumentUI('+JSON.stringify(String(d.id))+')">🗑️</button></div>';
-        }).join('') : '<div class="settingsMsg">Aucun document.</div>')+'</div></div>';
+      return '<div class="docAdminRubrique">'+
+        '<div class="docAdminHead">'+
+          '<strong>📁 '+escapeHtml(r.nom)+'</strong>'+ 
+          '<div class="docAdminActions">'+
+            '<button type="button" class="docSmallBtn add" data-doc-action="add" data-rubrique-id="'+rid+'">＋ Document</button>'+ 
+            '<button type="button" class="docSmallBtn delete" data-doc-action="delete-rubrique" data-rubrique-id="'+rid+'">🗑️ Rubrique</button>'+ 
+          '</div>'+ 
+        '</div>'+ 
+        '<div class="docAdminDocs">'+
+          (docs.length ? docs.map(function(d){
+            return '<div class="docAdminDoc">'+
+              '<span>📄 '+escapeHtml(d.nom)+'</span>'+ 
+              '<button type="button" class="docSmallBtn delete" data-doc-action="delete-document" data-document-id="'+escapeAttr_(String(d.id))+'">🗑️</button>'+ 
+            '</div>';
+          }).join('') : '<div class="settingsMsg">Aucun document.</div>')+
+        '</div>'+ 
+      '</div>';
     }).join('');
+
+    // Un seul gestionnaire de clic pour tous les boutons Documents.
+    // Cela évite les problèmes d'overlay/onclick sur GitHub Pages/PWA.
+    if(!box.dataset.docClickReady){
+      box.dataset.docClickReady='1';
+      box.addEventListener('click',function(ev){
+        const btn=ev.target.closest('.docSmallBtn');
+        if(!btn || !box.contains(btn)) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        const action=btn.getAttribute('data-doc-action');
+        if(action==='add'){
+          ajouterDocumentUI(btn.getAttribute('data-rubrique-id'));
+        }else if(action==='delete-document'){
+          supprimerDocumentUI(btn.getAttribute('data-document-id'));
+        }else if(action==='delete-rubrique'){
+          supprimerRubriqueDocumentUI(btn.getAttribute('data-rubrique-id'));
+        }
+      },true);
+    }
   }).withFailureHandler(function(e){
     box.innerHTML='<div class="settingsMsg">❌ '+escapeHtml(e&&e.message?e.message:e)+'</div>';
   }).getDocuments();
@@ -2286,6 +2321,8 @@ function chargerDocumentsAdminUI(){
 function creerRubriqueDocumentUI(){
   const nom=prompt('Nom de la nouvelle rubrique :');
   if(nom===null || !String(nom).trim()) return;
+  const btn=document.activeElement;
+  if(btn) btn.blur();
   google.script.run.withSuccessHandler(function(){
     messageParametres('✅ Rubrique créée.');
     chargerDocumentsAdminUI();
@@ -2295,6 +2332,8 @@ function creerRubriqueDocumentUI(){
 }
 
 function ajouterDocumentUI(rubriqueId){
+  rubriqueId=String(rubriqueId||'').trim();
+  if(!rubriqueId){alert('Rubrique introuvable.');return;}
   const nom=prompt('Nom du document :');
   if(nom===null || !String(nom).trim()) return;
   const url=prompt('Lien du document (PDF Google Drive ou autre lien HTTPS) :');
@@ -2305,27 +2344,31 @@ function ajouterDocumentUI(rubriqueId){
     chargerDocumentsAdminUI();
   }).withFailureHandler(function(e){
     messageParametres('❌ '+(e&&e.message?e.message:e),false);
-  }).ajouterDocument(Object.assign({rubriqueId:String(rubriqueId),nom:String(nom).trim(),url:String(url).trim(),type:String(type).trim()},donneesAccesGestion()));
+  }).ajouterDocument(Object.assign({rubriqueId:rubriqueId,nom:String(nom).trim(),url:String(url).trim(),type:String(type).trim()},donneesAccesGestion()));
 }
 
 function supprimerDocumentUI(id){
+  id=String(id||'').trim();
+  if(!id) return;
   if(!confirm('Supprimer ce document de SaniStock ?')) return;
   google.script.run.withSuccessHandler(function(){
     messageParametres('✅ Document supprimé.');
     chargerDocumentsAdminUI();
   }).withFailureHandler(function(e){
     messageParametres('❌ '+(e&&e.message?e.message:e),false);
-  }).supprimerDocument(Object.assign({id:String(id)},donneesAccesGestion()));
+  }).supprimerDocument(Object.assign({id:id},donneesAccesGestion()));
 }
 
 function supprimerRubriqueDocumentUI(id){
+  id=String(id||'').trim();
+  if(!id) return;
   if(!confirm('Supprimer cette rubrique et les documents qu’elle contient ?')) return;
   google.script.run.withSuccessHandler(function(){
     messageParametres('✅ Rubrique supprimée.');
     chargerDocumentsAdminUI();
   }).withFailureHandler(function(e){
     messageParametres('❌ '+(e&&e.message?e.message:e),false);
-  }).supprimerRubriqueDocument(Object.assign({id:String(id)},donneesAccesGestion()));
+  }).supprimerRubriqueDocument(Object.assign({id:id},donneesAccesGestion()));
 }
 
 
