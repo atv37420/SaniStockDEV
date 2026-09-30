@@ -2601,26 +2601,38 @@ function ajouterDocumentFichierUI(){
     const result=String(reader.result||'');
     const base64=result.indexOf(',')>=0?result.split(',')[1]:result;
     info.textContent='📤 Envoi de '+file.name+'…';
-    google.script.run
-      .withSuccessHandler(function(){
-        document.getElementById('docNom').value='';
-        if(inputDoc) inputDoc.value='';
-        if(inputPhoto) inputPhoto.value='';
-        afficherChoixDocument_('Aucun fichier choisi.');
-        info.textContent='✅ Document ajouté.';
-        chargerDocumentsAdmin();
-        setTimeout(function(){info.textContent='';},3000);
+    const payload=Object.assign({
+      rubriqueId:rubriqueId,
+      nom:nom,
+      fileName:file.name,
+      mimeType:file.type || 'application/octet-stream',
+      base64:base64
+    },donneesAccesGestion());
+
+    /*
+     * Depuis GitHub Pages, google.script.run n'est pas disponible.
+     * L'upload passe donc par doPost() de l'API Apps Script.
+     * no-cors permet l'envoi cross-origin sans bloquer le POST.
+     */
+    fetch(API_URL,{
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({
+        action:'ajouterDocumentFichier',
+        data:payload
       })
-      .withFailureHandler(function(err){
-        info.textContent='❌ '+(err&&err.message?err.message:err);
-      })
-      .ajouterDocumentFichier(Object.assign({
-        rubriqueId:rubriqueId,
-        nom:nom,
-        fileName:file.name,
-        mimeType:file.type,
-        base64:base64
-      },donneesAccesGestion()));
+    }).then(function(){
+      document.getElementById('docNom').value='';
+      if(inputDoc) inputDoc.value='';
+      if(inputPhoto) inputPhoto.value='';
+      afficherChoixDocument_('Aucun fichier choisi.');
+      info.textContent='✅ Document envoyé.';
+      chargerDocumentsAdmin();
+      setTimeout(function(){info.textContent='';},3000);
+    }).catch(function(err){
+      info.textContent='❌ Connexion à Google Apps Script impossible : '+(err&&err.message?err.message:err);
+    });
   };
   reader.onerror=function(){info.textContent='❌ Impossible de lire le fichier.';};
   reader.readAsDataURL(file);
