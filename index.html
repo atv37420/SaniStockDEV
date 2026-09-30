@@ -691,6 +691,17 @@ body{display:block}
   cursor:pointer;
   touch-action:manipulation;
 }
+#settingsOverlay.open #settingsPaneDocuments .docAdminCard:first-of-type,
+#settingsOverlay.open #settingsPaneDocuments .docAdminCard:first-of-type *{
+  pointer-events:auto !important;
+}
+#settingsOverlay.open #settingsPaneDocuments button[data-action="ajouter-rubrique"]{
+  position:relative !important;
+  z-index:10050 !important;
+  pointer-events:auto !important;
+  cursor:pointer !important;
+  touch-action:manipulation !important;
+}
 
 /* ===== DOCUMENTS / MEMO ===== */
 .docAdminCard{
@@ -1427,7 +1438,7 @@ body{display:block}
         <div class="docAdminTitle">📁 1. Créer une rubrique</div>
         <div class="docAdminRow">
           <input id="docRubriqueNom" type="text" maxlength="80" placeholder="Ex. Protocoles, Véhicules, Sécurité…">
-          <button type="button" class="settingsAction" onclick="ajouterRubriqueDocumentUI()">➕ Ajouter</button>
+          <button type="button" class="settingsAction" data-action="ajouter-rubrique" onclick="return ajouterRubriqueDocumentUI();">➕ Ajouter</button>
         </div>
       </div>
 
@@ -2600,6 +2611,19 @@ function chargerDocumentsAdmin(){
   });
 }
 
+/* ===== SECURITE CLIC RUBRIQUE DOCUMENTS =====
+   Le bouton est géré aussi par écouteur JavaScript global.
+   Cela évite qu'un overlay ou un handler inline bloque l'action. */
+document.addEventListener('click', function(e){
+  const btn = e.target && e.target.closest ? e.target.closest('#settingsPaneDocuments button[data-action="ajouter-rubrique"]') : null;
+  if(!btn) return;
+  e.preventDefault();
+  e.stopPropagation();
+  try { ajouterRubriqueDocumentUI(); } catch(err) {
+    alert('❌ Erreur : ' + (err && err.message ? err.message : err));
+  }
+}, true);
+
 function ajouterRubriqueDocumentUI(){
   const input=document.getElementById('docRubriqueNom');
   const nom=(input&&input.value||'').trim();
@@ -2613,6 +2637,7 @@ function ajouterRubriqueDocumentUI(){
     },
     function(err){alert('❌ '+(err&&err.message?err.message:err));}
   );
+  return false;
 }
 
 function afficherChoixDocument_(type){
