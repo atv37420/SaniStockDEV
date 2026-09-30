@@ -661,6 +661,9 @@ body{display:block}
 @media(max-width:700px){.homeButtons4{left:3%;right:3%;gap:7px;top:53%}.homeButton4{min-height:88px;padding:8px 5px;border-radius:12px;gap:4px}.homeButton4 .homeButtonTitle{font-size:10px}.homeButton4 .homeButtonDesc{font-size:7.5px;line-height:1.15}.homeButtonIcon{font-size:1.3em}}
 
 .saniVersion{position:absolute;left:50%;bottom:38px;transform:translateX(-50%);z-index:20;color:#fff;background:rgba(0,0,0,.48);padding:4px 10px;border-radius:10px;font-size:11px;font-weight:600;letter-spacing:.2px;pointer-events:none}
+
+/* ===== MÉMO / DOCUMENTS ===== */
+.homeButton4.memoDocuments4{background:#f2c400}
 </style>
 
 <style>
@@ -1370,6 +1373,11 @@ body{display:block}
 </span><span class="homeButtonTitle">DÉSINFECTION</span><span class="homeButtonDesc">Nettoyer et suivre les véhicules</span></button>
     <button type="button" class="homeButton4 medication4" onclick="showPage('medicationPage')" aria-label="Mémo médicaments"><span class="homeButtonIcon">💊</span><span class="homeButtonTitle">MÉMO MÉDICAMENTS</span><span class="homeButtonDesc">Infos sur les médicaments</span></button>
     <button type="button" class="homeButton4 settings4" onclick="ouvrirParametres()" aria-label="Paramètres"><span class="homeButtonIcon">⚙️</span><span class="homeButtonTitle">PARAMÈTRES</span><span class="homeButtonDesc">Gérer l’application</span></button>
+  <button type="button" class="homeButton4 memoDocuments4" onclick="showPage('memoDocumentsPage')" aria-label="Mémo Documents">
+    <span class="homeButtonIcon">📄</span>
+    <span class="homeButtonTitle">MÉMO / DOCUMENTS</span>
+    <span class="homeButtonDesc">Documents et procédures</span>
+  </button>
   </div>
   <div id="homeInformation" class="homeInfo" aria-live="polite"></div>
 <div id="homeInformationModal" class="homeInfoModal" aria-hidden="true">
@@ -8184,5 +8192,22 @@ if ("serviceWorker" in navigator) {
 </script>
 
 <div id="sanistock-version-bottom">SaniStock - version 1.0.68</div>
+
+<section id="memoDocumentsPage" class="screen" aria-label="Mémo Documents">
+  <div class="pageHeader">
+    <button type="button" class="backBtn" onclick="showPage('homePage')">← Retour</button>
+    <h1>📄 MÉMO / DOCUMENTS</h1>
+  </div>
+
+  <div class="card" style="margin:20px auto;max-width:900px;">
+    <h2>📄 Mémo / Documents</h2>
+    <p>Retrouvez ici les documents et procédures SaniStock.</p>
+    <div style="margin-top:18px;padding:16px;border-radius:14px;background:#fff8d6;border:1px solid #f2c400;">
+      <strong>📁 Documents</strong>
+      <div style="margin-top:6px;color:#555;">La gestion des PDF et photos sera ajoutée dans cette rubrique sans modifier le fonctionnement actuel de SaniStock.</div>
+    </div>
+  </div>
+</section>
+
 </body>
 </html>
