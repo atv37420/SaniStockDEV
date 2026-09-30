@@ -1298,7 +1298,7 @@ body{display:block}
 
         <section id="settingsPaneDocuments" class="settingsPane" role="tabpanel" hidden>
       <div class="settingsPaneHead">
-        <div><strong>📄 Mémo / Documents</strong><span>Créer les rubriques et ajouter les documents. Cette partie est réservée à l’administrateur.</span></div>
+        <div><strong>📄 Mémo / Documents</strong><span>Créer les rubriques et ajouter des PDF ou des photos depuis le téléphone. Cette partie est réservée à l’administrateur.</span></div>
         <button class="settingsAction" type="button" onclick="creerRubriqueDocumentUI()">＋ Nouvelle rubrique</button>
       </div>
       <div id="documentsAdminList"><div class="settingsMsg">Chargement des rubriques…</div></div>
@@ -2334,17 +2334,75 @@ function creerRubriqueDocumentUI(){
 function ajouterDocumentUI(rubriqueId){
   rubriqueId=String(rubriqueId||'').trim();
   if(!rubriqueId){alert('Rubrique introuvable.');return;}
+
   const nom=prompt('Nom du document :');
   if(nom===null || !String(nom).trim()) return;
-  const url=prompt('Lien du document (PDF Google Drive ou autre lien HTTPS) :');
-  if(url===null || !String(url).trim()) return;
-  const type=prompt('Type de document (PDF, procédure, fiche…) :','PDF') || 'PDF';
-  google.script.run.withSuccessHandler(function(){
-    messageParametres('✅ Document ajouté.');
-    chargerDocumentsAdminUI();
-  }).withFailureHandler(function(e){
-    messageParametres('❌ '+(e&&e.message?e.message:e),false);
-  }).ajouterDocument(Object.assign({rubriqueId:rubriqueId,nom:String(nom).trim(),url:String(url).trim(),type:String(type).trim()},donneesAccesGestion()));
+
+  // Sélecteur téléphone : PDF ou photo depuis l'appareil.
+  const input=document.createElement('input');
+  input.type='file';
+  input.accept='application/pdf,image/*';
+  input.style.position='fixed';
+  input.style.left='-99999px';
+  input.style.width='1px';
+  input.style.height='1px';
+  input.setAttribute('aria-hidden','true');
+  document.body.appendChild(input);
+
+  input.addEventListener('change',function(){
+    const file=input.files && input.files[0];
+    if(!file){
+      try{input.remove();}catch(e){}
+      return;
+    }
+
+    // Envoi via l'API DEV en GET/JSONP : on garde une taille raisonnable.
+    if(file.size > 1500000){
+      alert('⚠️ Fichier trop volumineux. Choisis un PDF ou une photo de moins de 1,5 Mo.');
+      try{input.remove();}catch(e){}
+      return;
+    }
+
+    messageParametres('⏳ Envoi de « '+file.name+' »…');
+
+    const reader=new FileReader();
+    reader.onload=function(){
+      try{
+        const result=String(reader.result||'');
+        const base64=result.indexOf(',')>=0 ? result.split(',')[1] : result;
+        const type=file.type || (file.name.toLowerCase().endsWith('.pdf')?'application/pdf':'image/jpeg');
+
+        google.script.run
+          .withSuccessHandler(function(res){
+            try{input.remove();}catch(e){}
+            messageParametres('✅ Document ajouté.');
+            chargerDocumentsAdminUI();
+          })
+          .withFailureHandler(function(e){
+            try{input.remove();}catch(x){}
+            messageParametres('❌ '+(e&&e.message?e.message:e),false);
+          })
+          .ajouterDocumentFichier(Object.assign({
+            rubriqueId:rubriqueId,
+            nom:String(nom).trim(),
+            fileName:file.name,
+            mimeType:type,
+            base64:base64
+          },donneesAccesGestion()));
+      }catch(e){
+        try{input.remove();}catch(x){}
+        messageParametres('❌ Impossible de préparer le fichier.',false);
+      }
+    };
+    reader.onerror=function(){
+      try{input.remove();}catch(e){}
+      messageParametres('❌ Impossible de lire le fichier.',false);
+    };
+    reader.readAsDataURL(file);
+  },{once:true});
+
+  // Déclenche le sélecteur de fichiers du téléphone/PDA.
+  input.click();
 }
 
 function supprimerDocumentUI(id){
