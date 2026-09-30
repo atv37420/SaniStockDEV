@@ -656,13 +656,12 @@ body{display:block}
 
 
 /* MENU PRINCIPAL SANISTOCK — 4 BOUTONS */
-.homeButtons4{position:absolute;z-index:20;left:4%;right:4%;top:52%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
-.homeButton4{position:relative;overflow:hidden;border:0;border-radius:16px;padding:10px 7px;min-height:92px;color:#fff;font-weight:900;box-shadow:0 7px 18px rgba(0,0,0,.28);cursor:pointer;touch-action:manipulation;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;transform-origin:center}
+.homeButtons4{position:absolute;z-index:20;left:5%;right:5%;top:52%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.homeButton4{position:relative;overflow:hidden;border:0;border-radius:16px;padding:12px 10px;min-height:96px;color:#fff;font-weight:900;box-shadow:0 7px 18px rgba(0,0,0,.28);cursor:pointer;touch-action:manipulation;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;transform-origin:center}
 .homeButton4 .homeButtonTitle{font-size:clamp(12px,1.25vw,18px);line-height:1.1}.homeButton4 .homeButtonDesc{font-size:clamp(8px,.78vw,11px);font-weight:600;line-height:1.2;opacity:.95;max-width:100%}
 .homeButton4.stock4{background:#1479e8}.homeButton4.disinfection4{background:#e53935}.homeButton4.medication4{background:#2eaf5d}.homeButton4.settings4{background:#6b7280}
 /* Les boutons principaux restent fixes : aucune animation au repos ni au clic. */
-@media(max-width:900px){.homeButtons4{grid-template-columns:repeat(4,minmax(0,1fr));left:4%;right:4%;gap:8px;top:52%}}
-@media(max-width:700px){.homeButtons4{left:3%;right:3%;gap:7px;top:53%;grid-template-columns:repeat(4,minmax(0,1fr))}.homeButton4{min-height:88px;padding:8px 5px;border-radius:12px;gap:4px}.homeButton4 .homeButtonTitle{font-size:10px}.homeButton4 .homeButtonDesc{font-size:7.5px;line-height:1.15}.homeButtonIcon{font-size:1.3em}}
+@media(max-width:700px){.homeButtons4{left:3%;right:3%;gap:7px;top:53%}.homeButton4{min-height:88px;padding:8px 5px;border-radius:12px;gap:4px}.homeButton4 .homeButtonTitle{font-size:10px}.homeButton4 .homeButtonDesc{font-size:7.5px;line-height:1.15}.homeButtonIcon{font-size:1.3em}}
 
 .saniVersion{position:absolute;left:50%;bottom:38px;transform:translateX(-50%);z-index:20;color:#fff;background:rgba(0,0,0,.48);padding:4px 10px;border-radius:10px;font-size:11px;font-weight:600;letter-spacing:.2px;pointer-events:none}
 
@@ -721,7 +720,7 @@ body{display:block}
 }
 
 /* ===== MÉMO / DOCUMENTS ===== */
-.homeButton4.memoDocuments4{background:#f2c400}.homeButton4.checklist4{background:#29B6D2}
+.homeButton4.memoDocuments4{background:#f2c400}
 </style>
 
 <style>
@@ -1296,14 +1295,10 @@ body{display:block}
 #sanistockWelcomeName .welcomeText{font-size:30px;font-weight:900;color:#fff;line-height:1.15;text-shadow:0 3px 14px rgba(0,0,0,.22);}
 @keyframes saniWelcomePop{from{opacity:0;transform:translateY(16px) scale(.94)}to{opacity:1;transform:translateY(0) scale(1)}}
 </style>
-
 <style>
-/* Deuxième ligne : mêmes carrés que la ligne principale */
-.homeButton4.memoDocuments4{grid-column:2}
-.homeButton4.checklist4{grid-column:3;background:#29B6D2}
-</style>
-
-</head>
+.homeButton4.checklist4{background:#29b6d2;grid-column:3}
+#checklistPage{background:#edf5fa;color:#173f68;min-height:100vh;padding:14px;overflow:auto}.checklistWrap{max-width:760px;margin:0 auto}.checklistHeader{display:flex;align-items:center;gap:10px;margin-bottom:12px}.checklistHeader h1{flex:1;margin:0;text-align:center;color:#073f91;font-size:22px}.checklistBack,.checklistChange{border:0;border-radius:12px;padding:10px 13px;background:#0758a5;color:#fff;font-weight:900;cursor:pointer}.checklistCard{background:#fff;border-radius:20px;padding:16px;margin:10px 0;box-shadow:0 7px 22px rgba(0,45,90,.10)}.checklistStepTitle{text-align:center;font-weight:900;color:#073f91;font-size:15px;margin-bottom:10px}.checklistCategoryGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.checklistCategoryBtn{border:0;border-radius:15px;padding:15px 8px;min-height:92px;color:#fff;font-weight:900;cursor:pointer;box-shadow:0 5px 14px rgba(0,45,90,.18)}.checklistCategoryBtn.ambu{background:#1479e8}.checklistCategoryBtn.taxi{background:#f2a900}.checklistCategoryBtn.vsl{background:#2eaf5d}.checklistCategoryBtn .big{display:block;font-size:25px;margin-bottom:4px}.checklistCategoryBtn .small{display:block;font-size:9px;opacity:.95}.checklistVehicleGrid{display:grid;gap:8px}.checklistVehicleBtn{width:100%;text-align:left;border:1px solid #d8e5ee;background:#f7fbfe;color:#173f68;border-radius:12px;padding:12px;font-weight:900;cursor:pointer}.checklistVehicleEmpty{text-align:center;padding:14px;color:#71879a;font-size:12px}.checklistTopLine{display:flex;align-items:center;justify-content:space-between;gap:8px}.checklistSelected{font-weight:900;color:#0758a5}.checklistChange{background:#e4eef6;color:#0758a5;padding:7px 9px}.checklistProgress{height:9px;border-radius:99px;background:#e3edf3;overflow:hidden;margin:9px 0 12px}.checklistProgress span{display:block;height:100%;width:0;background:#29b6d2}.checklistProgressText{text-align:center;font-size:10px;color:#60778c;font-weight:800}.checklistItems{display:grid;gap:7px}.checklistItem{display:flex;align-items:center;gap:10px;padding:11px;border:1px solid #e1ebf2;border-radius:11px;background:#f8fbfd;cursor:pointer}.checklistItem input{width:21px;height:21px;accent-color:#159b58}.checklistItem span{font-size:12px;font-weight:800;color:#284c69}.checklistAnomaly{width:100%;min-height:80px;border:1px solid #cbd8e2;border-radius:11px;padding:10px;font:inherit;resize:vertical}.checklistActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.checklistAction{border:0;border-radius:12px;padding:12px;font-weight:900;cursor:pointer}.checklistAction.primary{background:#0758a5;color:#fff}.checklistAction.pdf{background:#d72638;color:#fff}.checklistAction:disabled{opacity:.45;cursor:not-allowed}.checklistNotice{text-align:center;font-size:11px;font-weight:800;margin-top:8px;min-height:18px}@media(max-width:600px){.checklistCategoryGrid{gap:7px}.checklistCategoryBtn{min-height:82px;padding:11px 5px}.checklistActions{grid-template-columns:1fr}}@media print{body *{visibility:hidden!important}#checklistPrintArea,#checklistPrintArea *{visibility:visible!important}#checklistPrintArea{display:block!important;position:absolute!important;left:0!important;top:0!important;width:100%!important;background:#fff!important;color:#000!important;padding:18px!important}.checklistPrintTable{width:100%;border-collapse:collapse;margin-top:14px}.checklistPrintTable th,.checklistPrintTable td{border:1px solid #999;padding:7px;text-align:left;font-size:11px}.checklistPrintTable th{font-weight:900;background:#eee!important}}
+</style></head>
 <body>
 
 
@@ -1539,9 +1534,7 @@ body{display:block}
     <span class="homeButtonDesc">Documents et procédures</span>
   </button>
   <button type="button" class="homeButton4 checklist4" onclick="showPage('checklistPage')" aria-label="Checklist">
-    <span class="homeButtonIcon">☑️</span>
-    <span class="homeButtonTitle">CHECKLIST</span>
-    <span class="homeButtonDesc">Vérifications quotidiennes</span>
+    <span class="homeButtonIcon">☑️</span><span class="homeButtonTitle">CHECKLIST</span><span class="homeButtonDesc">Contrôle des véhicules</span>
   </button>
   </div>
   <div id="homeInformation" class="homeInfo" aria-live="polite"></div>
@@ -1642,41 +1635,6 @@ body{display:block}
 </section>
 </main>
 <script>
-const CHECKLIST_ITEMS=[
-  'Vérifier la propreté générale du véhicule',
-  'Vérifier le matériel et les consommables',
-  'Vérifier l’oxygène et le matériel respiratoire',
-  'Vérifier le DSA et son matériel',
-  'Vérifier les sacs et le matériel d’intervention',
-  'Vérifier le stock minimum',
-  'Effectuer la désinfection du véhicule'
-];
-function renderChecklist(){
-  const box=document.getElementById('checklistItems');
-  if(!box) return;
-  const state=JSON.parse(localStorage.getItem('sanistockChecklist')||'{}');
-  box.innerHTML=CHECKLIST_ITEMS.map(function(txt,i){
-    const checked=!!state[i];
-    return '<label class="checkItem '+(checked?'done':'')+'"><input type="checkbox" '+(checked?'checked':'')+' onchange="toggleChecklist('+i+',this.checked)"><span>'+escapeHtml(txt)+'</span></label>';
-  }).join('');
-}
-function toggleChecklist(i,val){
-  const state=JSON.parse(localStorage.getItem('sanistockChecklist')||'{}');
-  state[i]=!!val;
-  localStorage.setItem('sanistockChecklist',JSON.stringify(state));
-  renderChecklist();
-}
-function cocherChecklist(){
-  const state={};
-  CHECKLIST_ITEMS.forEach(function(_,i){state[i]=true});
-  localStorage.setItem('sanistockChecklist',JSON.stringify(state));
-  renderChecklist();
-}
-function resetChecklist(){
-  localStorage.removeItem('sanistockChecklist');
-  renderChecklist();
-}
-
 function showPage(id){
  var actuelle=document.querySelector('.screen.active');
  var suivante=document.getElementById(id);
@@ -1699,7 +1657,6 @@ function showPage(id){
  if(id==='stockPage') chargerStock();
  if(id==='memoDocumentsPage') setTimeout(function(){ if(typeof chargerDocumentsPublic==='function') chargerDocumentsPublic(); },100);
  if(id==='medicationPage') setTimeout(function(){ if(typeof renderMedicationMemo==='function') renderMedicationMemo(); },0);
- if(id==='checklistPage') setTimeout(renderChecklist,0);
 
  setTimeout(function(){
    if(actuelle){
@@ -8678,41 +8635,7 @@ if ("serviceWorker" in navigator) {
 
 
 
-<section id="checklistPage" class="screen page" aria-label="Checklist">
-  <div class="checklistWrap">
-    <div class="checklistHead">
-      <button type="button" class="back" onclick="showPage('homePage')">← Retour</button>
-      <h1>☑️ Checklist</h1>
-    </div>
-    <div class="checklistCard">
-      <div class="checklistIntro">Vérifications quotidiennes</div>
-      <div id="checklistItems"></div>
-      <div class="checklistActions">
-        <button type="button" onclick="cocherChecklist()">✓ Tout cocher</button>
-        <button type="button" onclick="resetChecklist()">↺ Réinitialiser</button>
-      </div>
-    </div>
-  </div>
-</section>
-
-<style>
-#checklistPage{background:#edf5fa;min-height:100vh;color:#173f68}
-.checklistWrap{max-width:650px;margin:0 auto}
-.checklistHead{display:flex;align-items:center;gap:12px;margin-bottom:18px}
-.checklistHead h1{flex:1;margin:0;text-align:center;color:#073f91;font-size:22px}
-.checklistCard{background:#fff;border-radius:20px;padding:16px;box-shadow:0 7px 22px rgba(0,45,90,.10)}
-.checklistIntro{text-align:center;color:#29B6D2;font-weight:900;font-size:15px;margin-bottom:12px}
-.checkItem{display:flex;align-items:center;gap:11px;padding:12px 9px;border-bottom:1px solid #e7eef3;cursor:pointer}
-.checkItem:last-child{border-bottom:0}
-.checkItem input{width:21px;height:21px;accent-color:#29B6D2;flex:none}
-.checkItem span{font-weight:700;font-size:13px}
-.checkItem.done span{text-decoration:line-through;color:#8293a0}
-.checklistActions{display:flex;gap:8px;margin-top:14px}
-.checklistActions button{flex:1;border:0;border-radius:11px;padding:11px;background:#29B6D2;color:#fff;font-weight:900;cursor:pointer}
-.checklistActions button+button{background:#dce7ed;color:#40576b}
-</style>
-
-<section id="memoDocumentsPage" class="screen" aria-label="Mémo Documents">
+<section id="checklistPage" class="screen" aria-label="Checklist véhicules"><div class="checklistWrap"><div class="checklistHeader"><button class="checklistBack" onclick="showPage('homePage')">← Retour</button><h1>☑️ CHECKLIST VÉHICULE</h1></div><div id="checklistStepCategory" class="checklistCard"><div class="checklistStepTitle">1. CHOISIR LA CATÉGORIE</div><div class="checklistCategoryGrid"><button class="checklistCategoryBtn ambu" onclick="choisirCategorieChecklist('AMBULANCE')"><span class="big">🚑</span>AMBULANCE<span class="small">Contrôle ambulance</span></button><button class="checklistCategoryBtn taxi" onclick="choisirCategorieChecklist('TAXI')"><span class="big">🚕</span>TAXI<span class="small">Contrôle taxi</span></button><button class="checklistCategoryBtn vsl" onclick="choisirCategorieChecklist('VSL')"><span class="big">🚐</span>VSL<span class="small">Contrôle VSL</span></button></div></div><div id="checklistStepVehicle" class="checklistCard" hidden><div class="checklistStepTitle">2. CHOISIR LE VÉHICULE</div><div id="checklistVehicleCategory" class="checklistSelected" style="text-align:center;margin-bottom:9px"></div><div id="checklistVehicleList" class="checklistVehicleGrid"></div><button class="checklistChange" style="margin-top:10px" onclick="retourCategorieChecklist()">← Changer de catégorie</button></div><div id="checklistStepItems" class="checklistCard" hidden><div class="checklistTopLine"><div><div id="checklistVehicleTitle" class="checklistSelected"></div><div id="checklistEmployeeTitle" style="font-size:10px;color:#71879a;margin-top:2px"></div></div><button class="checklistChange" onclick="retourVehiculeChecklist()">← Changer</button></div><div class="checklistProgressText" id="checklistProgressText">0 / 0 contrôles</div><div class="checklistProgress"><span id="checklistProgressBar"></span></div><div id="checklistItems" class="checklistItems"></div><div style="margin-top:13px"><label style="display:block;font-weight:900;font-size:11px;color:#a01f2c;margin-bottom:5px">⚠️ ANOMALIE / REMARQUE (facultatif)</label><textarea id="checklistAnomaly" class="checklistAnomaly" placeholder="Ex. pneu à contrôler, voyant allumé, matériel manquant…"></textarea></div><div class="checklistActions"><button class="checklistAction primary" onclick="validerChecklistVehicule()">✓ TERMINER LA CHECKLIST</button><button id="checklistPdfBtn" class="checklistAction pdf" onclick="genererPdfChecklist()" disabled>📄 GÉNÉRER LE PDF</button></div><div id="checklistNotice" class="checklistNotice"></div></div></div><div id="checklistPrintArea" style="display:none"><h1>SaniStock – Checklist véhicule</h1><div id="checklistPrintMeta"></div><table class="checklistPrintTable"><thead><tr><th>Contrôle</th><th>État</th></tr></thead><tbody id="checklistPrintRows"></tbody></table><div id="checklistPrintAnomaly" style="margin-top:14px"></div></div></section><section id="memoDocumentsPage" class="screen" aria-label="Mémo Documents">
   <div class="pageHeader">
     <button type="button" class="backBtn" onclick="showPage('homePage')">← Retour</button>
     <h1>📄 MÉMO / DOCUMENTS</h1>
@@ -8728,5 +8651,7 @@ if ("serviceWorker" in navigator) {
     </div>
   </div>
 </section>
-</body>
+<script>
+(function(){const C={AMBULANCE:['Poste de conduite','Points de contact / surfaces touchées','Lavage des vitrages','Niveau de carburant','État extérieur du véhicule','État des pneus','Éclairage / feux','Gyrophare / avertisseur','Compartiment patient','Brancard','Chaise d’évacuation','Oxygène','DSA','Matériel médical','Nettoyage / désinfection','Déchets évacués'],TAXI:['Poste de conduite','Points de contact / surfaces touchées','Lavage des vitrages','Niveau de carburant','État extérieur du véhicule','État des pneus','Éclairage / feux','Nettoyage / désinfection','Déchets évacués'],VSL:['Poste de conduite','Points de contact / surfaces touchées','Lavage des vitrages','Niveau de carburant','État extérieur du véhicule','État des pneus','Éclairage / feux','Nettoyage / désinfection','Déchets évacués']};let cat='',veh='',done=false;function esc(v){return String(v==null?'':v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}function cls(n){n=String(n||'').toUpperCase();if(n.includes('AMBULANCE')||n.includes('AMBU')||n==='PEUGEOT BOXER')return'AMBULANCE';if(n.includes('TAXI'))return'TAXI';if(n.includes('VSL'))return'VSL';return''}function vehicles(){let s=document.getElementById('vehicle');let a=s&&s.options?Array.from(s.options).map(o=>o.value).filter(Boolean):[];return a.map(n=>({nom:n,cat:cls(n)})).filter(x=>x.cat)}window.choisirCategorieChecklist=function(c){cat=c;let rows=vehicles().filter(v=>v.cat===c);document.getElementById('checklistVehicleCategory').textContent=(c==='AMBULANCE'?'🚑 ':c==='TAXI'?'🚕 ':'🚐 ')+c;document.getElementById('checklistVehicleList').innerHTML=rows.length?rows.map(v=>'<button class="checklistVehicleBtn" onclick="choisirVehiculeChecklist(this.dataset.nom)" data-nom="'+esc(v.nom)+'">🚘 '+esc(v.nom)+'</button>').join(''):'<div class="checklistVehicleEmpty">Aucun véhicule de cette catégorie n’a été trouvé.</div>';document.getElementById('checklistStepCategory').hidden=true;document.getElementById('checklistStepVehicle').hidden=false;document.getElementById('checklistStepItems').hidden=true};window.choisirVehiculeChecklist=function(n){veh=n;done=false;document.getElementById('checklistStepVehicle').hidden=true;document.getElementById('checklistStepItems').hidden=false;document.getElementById('checklistVehicleTitle').textContent='🚘 '+veh;let e=localStorage.getItem('sanistock_employee_name')||'';document.getElementById('checklistEmployeeTitle').textContent=e?'👤 Salarié : '+e:'👤 Salarié : non identifié';document.getElementById('checklistItems').innerHTML=(C[cat]||[]).map(x=>'<label class="checklistItem"><input type="checkbox" onchange="actualiserProgressChecklist()"><span>'+esc(x)+'</span></label>').join('');document.getElementById('checklistAnomaly').value='';document.getElementById('checklistPdfBtn').disabled=true;document.getElementById('checklistNotice').textContent='';actualiserProgressChecklist()};window.actualiserProgressChecklist=function(){let a=Array.from(document.querySelectorAll('#checklistItems input'));let n=a.filter(x=>x.checked).length;document.getElementById('checklistProgressText').textContent=n+' / '+a.length+' contrôles';document.getElementById('checklistProgressBar').style.width=(a.length?Math.round(n/a.length*100):0)+'%'};window.validerChecklistVehicule=function(){let a=Array.from(document.querySelectorAll('#checklistItems input'));if(a.some(x=>!x.checked)){let n=document.getElementById('checklistNotice');n.textContent='⚠️ Coche toutes les cases avant de terminer la checklist.';n.style.color='#a01f2c';return}done=true;document.getElementById('checklistPdfBtn').disabled=false;let n=document.getElementById('checklistNotice');n.textContent='✅ Checklist terminée. Tu peux générer le PDF.';n.style.color='#15803d'};window.genererPdfChecklist=function(){if(!done)return;let e=localStorage.getItem('sanistock_employee_name')||'Non identifié',d=new Date();document.getElementById('checklistPrintMeta').innerHTML='<p><b>Catégorie :</b> '+esc(cat)+' &nbsp; <b>Véhicule :</b> '+esc(veh)+'</p><p><b>Salarié :</b> '+esc(e)+' &nbsp; <b>Date :</b> '+d.toLocaleDateString('fr-FR')+' &nbsp; <b>Heure :</b> '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+'</p>';document.getElementById('checklistPrintRows').innerHTML=(C[cat]||[]).map(x=>'<tr><td>'+esc(x)+'</td><td>☑ Conforme</td></tr>').join('');let an=(document.getElementById('checklistAnomaly').value||'').trim();document.getElementById('checklistPrintAnomaly').innerHTML='<b>⚠️ Anomalie / remarque :</b> '+(an?esc(an):'Aucune');document.getElementById('checklistPrintArea').style.display='block';setTimeout(()=>{window.print();setTimeout(()=>document.getElementById('checklistPrintArea').style.display='none',800)},100)};window.retourCategorieChecklist=function(){cat='';veh='';document.getElementById('checklistStepCategory').hidden=false;document.getElementById('checklistStepVehicle').hidden=true;document.getElementById('checklistStepItems').hidden=true};window.retourVehiculeChecklist=function(){document.getElementById('checklistStepVehicle').hidden=false;document.getElementById('checklistStepItems').hidden=true;choisirCategorieChecklist(cat)}})();
+</script></body>
 </html>
