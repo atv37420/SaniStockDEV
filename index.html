@@ -1406,8 +1406,8 @@ body{display:block}
         <div class="docAdminForm">
           <input id="docNom" type="text" maxlength="120" placeholder="Nom du document">
           <select id="docRubriqueSelect"><option value="">Choisir une rubrique</option></select>
-          <input id="docFichier" type="file" accept="application/pdf,image/*" capture="environment">
-          <button type="button" class="settingsAction" onclick="ajouterDocumentFichierUI()">📤 Ajouter le PDF / la photo</button>
+          <input id="docFichier" type="file" accept=".pdf,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,image/*" capture="environment">
+          <button type="button" class="settingsAction" onclick="ajouterDocumentFichierUI()">📤 Ajouter le document / la photo</button>
           <div id="docUploadInfo" class="settingsMsg"></div>
         </div>
       </div>
@@ -2541,8 +2541,13 @@ function ajouterDocumentFichierUI(){
   if(!nom){alert('⚠️ Indique le nom du document.');return;}
   if(!rubriqueId){alert('⚠️ Choisis une rubrique.');return;}
   if(!file){alert('⚠️ Choisis un PDF ou une photo.');return;}
-  if(file.type!=='application/pdf' && file.type.indexOf('image/')!==0){
-    alert('⚠️ Seuls les PDF et les photos sont acceptés.');return;
+  const nomFichier=(file.name||'').toLowerCase();
+  const extensionsAutorisees=['.pdf','.doc','.docx','.xls','.xlsx','.ppt','.pptx','.txt'];
+  const fichierDocument=extensionsAutorisees.some(function(ext){return nomFichier.endsWith(ext);});
+  const fichierPhoto=file.type.indexOf('image/')===0;
+
+  if(!fichierDocument && !fichierPhoto){
+    alert('⚠️ Ce fichier n’est pas pris en charge. Choisis un PDF, un document ou une photo.');return;
   }
   if(file.size>1500000){
     alert('⚠️ Le fichier doit faire moins de 1,5 Mo. Pour une photo, utilise une photo compressée.');return;
