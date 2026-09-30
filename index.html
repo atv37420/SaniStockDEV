@@ -262,6 +262,10 @@ window.SANISTOCK_API_URL = 'https://script.google.com/macros/s/AKfycbwLJjr-IJI05
     updateStatus:updateOfflineStatus
   };
 
+  // Rend le pont API accessible aux fonctions de l'interface Documents.
+  // Certaines fonctions UI sont déclarées en dehors de cette IIFE.
+  window.sendJsonp=sendJsonp;
+
   function createRunner(success,failure){
     const target={
       withSuccessHandler(fn){return createRunner(fn,failure);},
