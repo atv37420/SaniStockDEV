@@ -901,11 +901,21 @@ body{display:block}
 <style>
 /* ===== MÉMO / DOCUMENTS ===== */
 #memoDocumentsPage{
-  min-height:100vh;
+  display:none !important;
+  position:fixed !important;
+  inset:0 !important;
+  z-index:999999 !important;
+  width:100% !important;
+  min-height:100vh !important;
   background:#edf5fa;
   color:#173f68;
   padding:18px;
   overflow:auto;
+}
+#memoDocumentsPage.active{
+  display:block !important;
+  background:#edf5fa !important;
+  color:#173f68 !important;
 }
 #memoDocumentsPage .pageHeader{
   max-width:900px;
@@ -8256,6 +8266,9 @@ if ("serviceWorker" in navigator) {
 
 <div id="sanistock-version-bottom">SaniStock - version 1.0.68</div>
 
+
+
+
 <section id="memoDocumentsPage" class="screen" aria-label="Mémo Documents">
   <div class="pageHeader">
     <button type="button" class="backBtn" onclick="showPage('homePage')">← Retour</button>
@@ -8271,6 +8284,5 @@ if ("serviceWorker" in navigator) {
     </div>
   </div>
 </section>
-
 </body>
 </html>
