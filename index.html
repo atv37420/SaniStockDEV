@@ -2737,7 +2737,9 @@ function ajouterDocumentFichierUI(){
       // Le POST est exécuté dans une iframe. Apps Script renvoie maintenant
       // un message sécurisé à la page par postMessage : succès OU erreur réelle.
       const messageHandler=function(event){
-        if(event.origin !== window.location.origin) return;
+        // La réponse vient de l'iframe Apps Script, donc son origin n'est
+        // pas celui de GitHub Pages. On vérifie la fenêtre source à la place.
+        if(event.source !== iframe.contentWindow) return;
         const d=event.data||{};
         if(d.sanistockUpload !== 'SANISTOCK_UPLOAD') return;
         if(termine) return;
