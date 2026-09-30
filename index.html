@@ -1406,7 +1406,16 @@ body{display:block}
         <div class="docAdminForm">
           <input id="docNom" type="text" maxlength="120" placeholder="Nom du document">
           <select id="docRubriqueSelect"><option value="">Choisir une rubrique</option></select>
-          <input id="docFichier" type="file" accept=".pdf,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,image/*" capture="environment">
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <button type="button" class="settingsAction" onclick="document.getElementById('docFichier').click()">📄 Choisir un document</button>
+            <button type="button" class="settingsAction" onclick="document.getElementById('docPhoto').click()">📷 Choisir une photo</button>
+          </div>
+
+          <input id="docFichier" type="file" accept=".pdf,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt" style="display:none">
+          <input id="docPhoto" type="file" accept="image/*" capture="environment" style="display:none">
+
+          <div id="docChoixFichier" class="settingsMsg">Aucun fichier choisi.</div>
           <button type="button" class="settingsAction" onclick="ajouterDocumentFichierUI()">📤 Ajouter le document / la photo</button>
           <div id="docUploadInfo" class="settingsMsg"></div>
         </div>
@@ -2544,23 +2553,43 @@ function ajouterRubriqueDocumentUI(){
     .ajouterRubriqueDocument(Object.assign({nom:nom},donneesAccesGestion()));
 }
 
+function afficherChoixDocument_(type){
+  const info=document.getElementById('docChoixFichier');
+  if(info) info.textContent=type||'Aucun fichier choisi.';
+}
+
+(function(){
+  const doc=document.getElementById('docFichier');
+  const photo=document.getElementById('docPhoto');
+  if(doc) doc.addEventListener('change',function(){
+    const f=doc.files&&doc.files[0];
+    if(f) afficherChoixDocument_('📄 '+f.name);
+  });
+  if(photo) photo.addEventListener('change',function(){
+    const f=photo.files&&photo.files[0];
+    if(f) afficherChoixDocument_('📷 '+f.name);
+  });
+})();
+
 function ajouterDocumentFichierUI(){
   const nom=(document.getElementById('docNom').value||'').trim();
   const rubriqueId=document.getElementById('docRubriqueSelect').value;
-  const input=document.getElementById('docFichier');
+  const inputDoc=document.getElementById('docFichier');
+  const inputPhoto=document.getElementById('docPhoto');
   const info=document.getElementById('docUploadInfo');
-  const file=input&&input.files&&input.files[0];
+  const file=(inputDoc&&inputDoc.files&&inputDoc.files[0]) || (inputPhoto&&inputPhoto.files&&inputPhoto.files[0]);
 
   if(!nom){alert('⚠️ Indique le nom du document.');return;}
   if(!rubriqueId){alert('⚠️ Choisis une rubrique.');return;}
-  if(!file){alert('⚠️ Choisis un PDF ou une photo.');return;}
+  if(!file){alert('⚠️ Choisis d’abord un document 📄 ou une photo 📷.');return;}
+
   const nomFichier=(file.name||'').toLowerCase();
   const extensionsAutorisees=['.pdf','.doc','.docx','.xls','.xlsx','.ppt','.pptx','.txt'];
   const fichierDocument=extensionsAutorisees.some(function(ext){return nomFichier.endsWith(ext);});
   const fichierPhoto=file.type.indexOf('image/')===0;
 
   if(!fichierDocument && !fichierPhoto){
-    alert('⚠️ Ce fichier n’est pas pris en charge. Choisis un PDF, un document ou une photo.');return;
+    alert('⚠️ Ce fichier n’est pas pris en charge.');return;
   }
   if(file.size>1500000){
     alert('⚠️ Le fichier doit faire moins de 1,5 Mo. Pour une photo, utilise une photo compressée.');return;
@@ -2575,7 +2604,9 @@ function ajouterDocumentFichierUI(){
     google.script.run
       .withSuccessHandler(function(){
         document.getElementById('docNom').value='';
-        input.value='';
+        if(inputDoc) inputDoc.value='';
+        if(inputPhoto) inputPhoto.value='';
+        afficherChoixDocument_('Aucun fichier choisi.');
         info.textContent='✅ Document ajouté.';
         chargerDocumentsAdmin();
         setTimeout(function(){info.textContent='';},3000);
