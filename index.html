@@ -899,6 +899,51 @@ body{display:block}
 
 
 <style>
+/* ===== MÉMO / DOCUMENTS ===== */
+#memoDocumentsPage{
+  min-height:100vh;
+  background:#edf5fa;
+  color:#173f68;
+  padding:18px;
+  overflow:auto;
+}
+#memoDocumentsPage .pageHeader{
+  max-width:900px;
+  margin:0 auto 18px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+#memoDocumentsPage .pageHeader h1{
+  flex:1;
+  margin:0;
+  text-align:center;
+  color:#073f91;
+  font-size:22px;
+}
+#memoDocumentsPage .backBtn{
+  border:0;
+  border-radius:12px;
+  padding:10px 14px;
+  background:#0758a5;
+  color:#fff;
+  font-weight:900;
+  cursor:pointer;
+}
+#memoDocumentsPage .card{
+  background:#fff;
+  border-radius:20px;
+  padding:24px;
+  text-align:center;
+  color:#486783;
+  box-shadow:0 8px 25px rgba(0,45,90,.12);
+}
+@media(max-width:600px){
+  #memoDocumentsPage{padding:12px}
+  #memoDocumentsPage .pageHeader h1{font-size:17px}
+  #memoDocumentsPage .backBtn{padding:9px 11px;font-size:12px}
+}
+
 /* ===== MASQUAGE CODE ADMIN ===== */
 #saniPinInput{
   -webkit-text-security:disc !important;
@@ -1240,6 +1285,7 @@ body{display:block}
       <button id="settingsTabVehicules" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('vehicules')">🚑 Véhicules</button>
       <button id="settingsTabDashboard" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('dashboard')">📊 Tableau de bord</button>
       <button id="settingsTabInformations" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('informations')">📢 Informations</button>
+      <button id="settingsTabDocuments" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('documents')">📄 Documents</button>
     </div>
 
     <div id="settingsMsg" class="settingsMsg"></div>
@@ -1275,6 +1321,18 @@ body{display:block}
       </div>
       <div id="dashboardContent">
         <div class="dashboardLoading">Chargement du tableau de bord…</div>
+      </div>
+    </section>
+
+    <section id="settingsPaneDocuments" class="settingsPane" role="tabpanel" hidden>
+      <div class="settingsPaneHead">
+        <div><strong>📄 Mémo / Documents</strong><span>Gérer les documents et procédures SaniStock.</span></div>
+      </div>
+      <div class="infoCard" style="margin-top:10px;">
+        <strong>📁 Gestion des documents</strong>
+        <p style="font-size:11px;color:#60778c;margin:7px 0 0;">
+          La gestion des PDF et photos sera intégrée ici, sans modifier les autres fonctions de SaniStock.
+        </p>
       </div>
     </section>
 
@@ -2141,6 +2199,7 @@ function ouvrirOngletParametres(onglet){
   const tv=document.getElementById('settingsTabVehicules');
   const td=document.getElementById('settingsTabDashboard');
   const ti=document.getElementById('settingsTabInformations');
+  const tdocs=document.getElementById('settingsTabDocuments');
   const tdate=document.getElementById('settingsTabDates');
   const paneDate=document.getElementById('settingsPaneDates');
 
@@ -2149,24 +2208,28 @@ function ouvrirOngletParametres(onglet){
   const isVeh=onglet==='vehicules';
   const isDash=onglet==='dashboard';
   const isInfo=onglet==='informations';
+  const isDocs=onglet==='documents';
 
   sal.hidden=!isSal;
   paneDate.hidden=!isDates;
   veh.hidden=!isVeh;
   dash.hidden=!isDash;
   document.getElementById('settingsPaneInformations').hidden=!isInfo;
+  document.getElementById('settingsPaneDocuments').hidden=!isDocs;
 
   ts.classList.toggle('active',isSal);
   tdate.classList.toggle('active',isDates);
   tv.classList.toggle('active',isVeh);
   td.classList.toggle('active',isDash);
   ti.classList.toggle('active',isInfo);
+  tdocs.classList.toggle('active',isDocs);
 
   ts.setAttribute('aria-selected',String(isSal));
   tdate.setAttribute('aria-selected',String(isDates));
   tv.setAttribute('aria-selected',String(isVeh));
   td.setAttribute('aria-selected',String(isDash));
   ti.setAttribute('aria-selected',String(isInfo));
+  tdocs.setAttribute('aria-selected',String(isDocs));
 
   if(isSal) chargerGestionSalaries();
   else if(isDates) chargerDatesAnniversaires();
@@ -8199,12 +8262,12 @@ if ("serviceWorker" in navigator) {
     <h1>📄 MÉMO / DOCUMENTS</h1>
   </div>
 
-  <div class="card" style="margin:20px auto;max-width:900px;">
-    <h2>📄 Mémo / Documents</h2>
-    <p>Retrouvez ici les documents et procédures SaniStock.</p>
-    <div style="margin-top:18px;padding:16px;border-radius:14px;background:#fff8d6;border:1px solid #f2c400;">
-      <strong>📁 Documents</strong>
-      <div style="margin-top:6px;color:#555;">La gestion des PDF et photos sera ajoutée dans cette rubrique sans modifier le fonctionnement actuel de SaniStock.</div>
+  <div class="card" style="margin:0 auto;max-width:900px;">
+    <h2 style="margin-top:0;color:#073f91;">📁 Documents et procédures</h2>
+    <p style="margin-bottom:0;">Retrouvez ici les documents utiles à l’équipe SaniStock.</p>
+    <div style="margin-top:18px;padding:16px;border-radius:14px;background:#fff8d6;border:1px solid #f2c400;text-align:left;">
+      <strong style="color:#173f68;">📄 Mémo / Documents</strong>
+      <div style="margin-top:6px;color:#555;">La gestion des PDF et photos sera ajoutée dans cette rubrique.</div>
     </div>
   </div>
 </section>
