@@ -2216,219 +2216,34 @@ function ouvrirOngletParametres(onglet){
 
 
 /* ===== MÉMO / DOCUMENTS ===== */
+<script>
+(function(){window.saniDocumentsApi=function(action,data,onSuccess,onFailure){var cb='__sani_docs_'+Date.now()+'_'+Math.random().toString(36).slice(2),sc=document.createElement('script'),done=false;function fin(){if(done)return;done=true;try{delete window[cb]}catch(e){}if(sc.parentNode)sc.parentNode.removeChild(sc)}window[cb]=function(r){fin();if(r&&r.success){if(onSuccess)onSuccess(r.data)}else if(onFailure)onFailure({message:r&&r.error||'Erreur SaniStock'})};sc.onerror=function(){fin();if(onFailure)onFailure({message:'Connexion à Google Apps Script impossible'})};sc.src='https://script.google.com/macros/s/AKfycbwLJjr-IJI05AncbMG5QSslmAdOINzpb0iHrSBFzKhJW1JhVoUvPeSDIMOjtVwzwizL/exec'+'?'+new URLSearchParams({api:'1',action:String(action),callback:cb,data:JSON.stringify(data==null?null:data)}).toString();document.head.appendChild(sc);setTimeout(function(){if(!done){fin();if(onFailure)onFailure({message:'Délai de connexion dépassé'})}},20000)}})();
+</script>
 function chargerDocumentsUI(){
-  const box=document.getElementById('memoDocumentsContent');
-  if(!box) return;
+  const box=document.getElementById('memoDocumentsContent'); if(!box)return;
   box.innerHTML='<div class="settingsMsg">Chargement des documents…</div>';
-
   function afficher(data){
-    data=data||{rubriques:[],documents:[]};
-    const rubriques=Array.isArray(data.rubriques)?data.rubriques:[];
-    const documents=Array.isArray(data.documents)?data.documents:[];
+    data=data||{rubriques:[],documents:[]}; const rubriques=Array.isArray(data.rubriques)?data.rubriques:[],documents=Array.isArray(data.documents)?data.documents:[];
     try{localStorage.setItem('sanistock_documents_cache',JSON.stringify(data));}catch(e){}
-    if(!rubriques.length){
-      box.innerHTML='<div class="memoEmpty">📂 Aucun document disponible pour le moment.</div>';
-      return;
-    }
-    box.innerHTML=rubriques.map(function(r){
-      const docs=documents.filter(function(d){return String(d.rubriqueId)===String(r.id);});
-      return '<div class="memoRubriqueCard"><div class="memoRubriqueTitle">📁 '+escapeHtml(r.nom)+'</div>'+
-        (docs.length ? docs.map(function(d){
-          return '<div class="memoDocCard"><div><div class="memoDocName">📄 '+escapeHtml(d.nom)+'</div><div class="memoDocType">'+escapeHtml(d.type||'Document')+'</div></div>'+
-            '<a class="memoDocOpen" href="'+escapeAttr_(d.url)+'" target="_blank" rel="noopener">📖 Ouvrir</a></div>';
-        }).join('') : '<div class="memoEmpty">Aucun document dans cette rubrique.</div>')+
-      '</div>';
-    }).join('');
+    if(!rubriques.length){box.innerHTML='<div class="memoEmpty">📂 Aucun document disponible pour le moment.</div>';return;}
+    box.innerHTML=rubriques.map(function(r){const docs=documents.filter(function(d){return String(d.rubriqueId)===String(r.id)});return '<div class="memoRubriqueCard"><div class="memoRubriqueTitle">📁 '+escapeHtml(r.nom)+'</div>'+(docs.length?docs.map(function(d){return '<div class="memoDocCard"><div><div class="memoDocName">📄 '+escapeHtml(d.nom)+'</div><div class="memoDocType">'+escapeHtml(d.type||'Document')+'</div></div><a class="memoDocOpen" href="'+escapeAttr_(d.url)+'" target="_blank" rel="noopener">📖 Ouvrir</a></div>'}).join(''):'<div class="memoEmpty">Aucun document dans cette rubrique.</div>')+'</div>'}).join('');
   }
-
-  if(!gsDisponible()){
-    try{const cache=JSON.parse(localStorage.getItem('sanistock_documents_cache')||'null');if(cache){afficher(cache);return;}}catch(e){}
-    box.innerHTML='<div class="memoEmpty">📵 Les documents nécessitent une connexion pour le premier chargement.</div>';
-    return;
-  }
-
-  google.script.run.withSuccessHandler(afficher).withFailureHandler(function(e){
-    try{const cache=JSON.parse(localStorage.getItem('sanistock_documents_cache')||'null');if(cache){afficher(cache);return;}}catch(x){}
-    box.innerHTML='<div class="memoEmpty">❌ '+escapeHtml(e&&e.message?e.message:e)+'</div>';
-  }).getDocuments();
+  saniDocumentsApi('getDocuments',null,afficher,function(e){try{const c=JSON.parse(localStorage.getItem('sanistock_documents_cache')||'null');if(c){afficher(c);return}}catch(x){}box.innerHTML='<div class="memoEmpty">❌ '+escapeHtml(e&&e.message?e.message:e)+'</div>'});
 }
-
-function escapeAttr_(value){
-  return String(value||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
+function escapeAttr_(value){return String(value||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 function chargerDocumentsAdminUI(){
-  const box=document.getElementById('documentsAdminList');
-  if(!box) return;
-  box.innerHTML='<div class="settingsMsg">Chargement…</div>';
-
-  google.script.run.withSuccessHandler(function(data){
-    data=data||{rubriques:[],documents:[]};
-    const rubriques=Array.isArray(data.rubriques)?data.rubriques:[];
-    const documents=Array.isArray(data.documents)?data.documents:[];
-
-    if(!rubriques.length){
-      box.innerHTML='<div class="settingsMsg">Aucune rubrique. Clique sur « Nouvelle rubrique » pour commencer.</div>';
-      return;
-    }
-
-    box.innerHTML=rubriques.map(function(r){
-      const rid=escapeAttr_(String(r.id));
-      const docs=documents.filter(function(d){return String(d.rubriqueId)===String(r.id);});
-      return '<div class="docAdminRubrique">'+
-        '<div class="docAdminHead">'+
-          '<strong>📁 '+escapeHtml(r.nom)+'</strong>'+ 
-          '<div class="docAdminActions">'+
-            '<button type="button" class="docSmallBtn add" data-doc-action="add" data-rubrique-id="'+rid+'">＋ Document</button>'+ 
-            '<button type="button" class="docSmallBtn delete" data-doc-action="delete-rubrique" data-rubrique-id="'+rid+'">🗑️ Rubrique</button>'+ 
-          '</div>'+ 
-        '</div>'+ 
-        '<div class="docAdminDocs">'+
-          (docs.length ? docs.map(function(d){
-            return '<div class="docAdminDoc">'+
-              '<span>📄 '+escapeHtml(d.nom)+'</span>'+ 
-              '<button type="button" class="docSmallBtn delete" data-doc-action="delete-document" data-document-id="'+escapeAttr_(String(d.id))+'">🗑️</button>'+ 
-            '</div>';
-          }).join('') : '<div class="settingsMsg">Aucun document.</div>')+
-        '</div>'+ 
-      '</div>';
-    }).join('');
-
-    // Un seul gestionnaire de clic pour tous les boutons Documents.
-    // Cela évite les problèmes d'overlay/onclick sur GitHub Pages/PWA.
-    if(!box.dataset.docClickReady){
-      box.dataset.docClickReady='1';
-      box.addEventListener('click',function(ev){
-        const btn=ev.target.closest('.docSmallBtn');
-        if(!btn || !box.contains(btn)) return;
-        ev.preventDefault();
-        ev.stopPropagation();
-        const action=btn.getAttribute('data-doc-action');
-        if(action==='add'){
-          ajouterDocumentUI(btn.getAttribute('data-rubrique-id'));
-        }else if(action==='delete-document'){
-          supprimerDocumentUI(btn.getAttribute('data-document-id'));
-        }else if(action==='delete-rubrique'){
-          supprimerRubriqueDocumentUI(btn.getAttribute('data-rubrique-id'));
-        }
-      },true);
-    }
-  }).withFailureHandler(function(e){
-    box.innerHTML='<div class="settingsMsg">❌ '+escapeHtml(e&&e.message?e.message:e)+'</div>';
-  }).getDocuments();
+  const box=document.getElementById('documentsAdminList');if(!box)return;box.innerHTML='<div class="settingsMsg">Chargement…</div>';
+  saniDocumentsApi('getDocuments',null,function(data){data=data||{rubriques:[],documents:[]};const rubriques=Array.isArray(data.rubriques)?data.rubriques:[],documents=Array.isArray(data.documents)?data.documents:[];if(!rubriques.length){box.innerHTML='<div class="settingsMsg">Aucune rubrique. Clique sur « Nouvelle rubrique » pour commencer.</div>';return}box.innerHTML=rubriques.map(function(r){const rid=escapeAttr_(r.id),docs=documents.filter(function(d){return String(d.rubriqueId)===String(r.id)});return '<div class="docAdminRubrique"><div class="docAdminHead"><strong>📁 '+escapeHtml(r.nom)+'</strong><div class="docAdminActions"><button type="button" class="docSmallBtn add" data-doc-action="add" data-rubrique-id="'+rid+'">＋ Document</button><button type="button" class="docSmallBtn delete" data-doc-action="delete-rubrique" data-rubrique-id="'+rid+'">🗑️ Rubrique</button></div></div><div class="docAdminDocs">'+(docs.length?docs.map(function(d){return '<div class="docAdminDoc"><span>📄 '+escapeHtml(d.nom)+'</span><button type="button" class="docSmallBtn delete" data-doc-action="delete-document" data-document-id="'+escapeAttr_(d.id)+'">🗑️</button></div>'}).join(''):'<div class="settingsMsg">Aucun document.</div>')+'</div></div>'}).join('')},function(e){box.innerHTML='<div class="settingsMsg">❌ '+escapeHtml(e&&e.message?e.message:e)+'</div>'});
+  if(!box.dataset.docClickReady){box.dataset.docClickReady='1';box.addEventListener('click',function(ev){const btn=ev.target.closest('.docSmallBtn');if(!btn)return;ev.preventDefault();ev.stopPropagation();const a=btn.dataset.docAction;if(a==='add')ajouterDocumentUI(btn.dataset.rubriqueId);else if(a==='delete-document')supprimerDocumentUI(btn.dataset.documentId);else if(a==='delete-rubrique')supprimerRubriqueDocumentUI(btn.dataset.rubriqueId)},true)}
 }
-
-function creerRubriqueDocumentUI(){
-  const nom=prompt('Nom de la nouvelle rubrique :');
-  if(nom===null || !String(nom).trim()) return;
-  const btn=document.activeElement;
-  if(btn) btn.blur();
-  google.script.run.withSuccessHandler(function(){
-    messageParametres('✅ Rubrique créée.');
-    chargerDocumentsAdminUI();
-  }).withFailureHandler(function(e){
-    messageParametres('❌ '+(e&&e.message?e.message:e),false);
-  }).ajouterRubriqueDocument(Object.assign({nom:String(nom).trim()},donneesAccesGestion()));
-}
-
+function creerRubriqueDocumentUI(){const nom=prompt('Nom de la nouvelle rubrique :');if(nom===null||!String(nom).trim())return;saniDocumentsApi('ajouterRubriqueDocument',Object.assign({nom:String(nom).trim()},donneesAccesGestion()),function(){messageParametres('✅ Rubrique créée.');chargerDocumentsAdminUI()},function(e){messageParametres('❌ '+(e&&e.message?e.message:e),false)})}
 function ajouterDocumentUI(rubriqueId){
-  rubriqueId=String(rubriqueId||'').trim();
-  if(!rubriqueId){alert('Rubrique introuvable.');return;}
-
-  const nom=prompt('Nom du document :');
-  if(nom===null || !String(nom).trim()) return;
-
-  // Sélecteur téléphone : PDF ou photo depuis l'appareil.
-  const input=document.createElement('input');
-  input.type='file';
-  input.accept='application/pdf,image/*';
-  input.style.position='fixed';
-  input.style.left='-99999px';
-  input.style.width='1px';
-  input.style.height='1px';
-  input.setAttribute('aria-hidden','true');
-  document.body.appendChild(input);
-
-  input.addEventListener('change',function(){
-    const file=input.files && input.files[0];
-    if(!file){
-      try{input.remove();}catch(e){}
-      return;
-    }
-
-    // Envoi via l'API DEV en GET/JSONP : on garde une taille raisonnable.
-    if(file.size > 1500000){
-      alert('⚠️ Fichier trop volumineux. Choisis un PDF ou une photo de moins de 1,5 Mo.');
-      try{input.remove();}catch(e){}
-      return;
-    }
-
-    messageParametres('⏳ Envoi de « '+file.name+' »…');
-
-    const reader=new FileReader();
-    reader.onload=function(){
-      try{
-        const result=String(reader.result||'');
-        const base64=result.indexOf(',')>=0 ? result.split(',')[1] : result;
-        const type=file.type || (file.name.toLowerCase().endsWith('.pdf')?'application/pdf':'image/jpeg');
-
-        google.script.run
-          .withSuccessHandler(function(res){
-            try{input.remove();}catch(e){}
-            messageParametres('✅ Document ajouté.');
-            chargerDocumentsAdminUI();
-          })
-          .withFailureHandler(function(e){
-            try{input.remove();}catch(x){}
-            messageParametres('❌ '+(e&&e.message?e.message:e),false);
-          })
-          .ajouterDocumentFichier(Object.assign({
-            rubriqueId:rubriqueId,
-            nom:String(nom).trim(),
-            fileName:file.name,
-            mimeType:type,
-            base64:base64
-          },donneesAccesGestion()));
-      }catch(e){
-        try{input.remove();}catch(x){}
-        messageParametres('❌ Impossible de préparer le fichier.',false);
-      }
-    };
-    reader.onerror=function(){
-      try{input.remove();}catch(e){}
-      messageParametres('❌ Impossible de lire le fichier.',false);
-    };
-    reader.readAsDataURL(file);
-  },{once:true});
-
-  // Déclenche le sélecteur de fichiers du téléphone/PDA.
-  input.click();
+  rubriqueId=String(rubriqueId||'').trim();if(!rubriqueId){alert('Rubrique introuvable.');return}const nom=prompt('Nom du document :');if(nom===null||!String(nom).trim())return;
+  const input=document.createElement('input');input.type='file';input.accept='application/pdf,image/*';input.capture='environment';input.style.position='fixed';input.style.left='-99999px';document.body.appendChild(input);
+  input.onchange=function(){const file=input.files&&input.files[0];if(!file){input.remove();return}if(file.size>1500000){alert('⚠️ Fichier trop volumineux. Choisis un PDF ou une photo de moins de 1,5 Mo.');input.remove();return}messageParametres('⏳ Envoi de « '+file.name+' »…');const reader=new FileReader();reader.onload=function(){const result=String(reader.result||''),base64=result.indexOf(',')>=0?result.split(',')[1]:result,type=file.type||(file.name.toLowerCase().endsWith('.pdf')?'application/pdf':'image/jpeg'),data=Object.assign({rubriqueId:rubriqueId,nom:String(nom).trim(),fileName:file.name,mimeType:type,base64:base64},donneesAccesGestion());const iframe=document.createElement('iframe');iframe.name='saniUpload_'+Date.now();iframe.style.display='none';document.body.appendChild(iframe);const form=document.createElement('form');form.method='POST';form.action='https://script.google.com/macros/s/AKfycbwLJjr-IJI05AncbMG5QSslmAdOINzpb0iHrSBFzKhJW1JhVoUvPeSDIMOjtVwzwizL/exec';form.target=iframe.name;form.style.display='none';[['action','ajouterDocumentFichier'],['data',JSON.stringify(data)]].forEach(function(x){const h=document.createElement('input');h.type='hidden';h.name=x[0];h.value=x[1];form.appendChild(h)});document.body.appendChild(form);form.submit();setTimeout(function(){try{form.remove();iframe.remove()}catch(e){}messageParametres('✅ Document envoyé. Actualisation…');chargerDocumentsAdminUI()},5000)};reader.onerror=function(){input.remove();messageParametres('❌ Impossible de lire le fichier.',false)};reader.readAsDataURL(file)};input.click();
 }
-
-function supprimerDocumentUI(id){
-  id=String(id||'').trim();
-  if(!id) return;
-  if(!confirm('Supprimer ce document de SaniStock ?')) return;
-  google.script.run.withSuccessHandler(function(){
-    messageParametres('✅ Document supprimé.');
-    chargerDocumentsAdminUI();
-  }).withFailureHandler(function(e){
-    messageParametres('❌ '+(e&&e.message?e.message:e),false);
-  }).supprimerDocument(Object.assign({id:id},donneesAccesGestion()));
-}
-
-function supprimerRubriqueDocumentUI(id){
-  id=String(id||'').trim();
-  if(!id) return;
-  if(!confirm('Supprimer cette rubrique et les documents qu’elle contient ?')) return;
-  google.script.run.withSuccessHandler(function(){
-    messageParametres('✅ Rubrique supprimée.');
-    chargerDocumentsAdminUI();
-  }).withFailureHandler(function(e){
-    messageParametres('❌ '+(e&&e.message?e.message:e),false);
-  }).supprimerRubriqueDocument(Object.assign({id:id},donneesAccesGestion()));
-}
-
+function supprimerDocumentUI(id){id=String(id||'').trim();if(!id||!confirm('Supprimer ce document ?'))return;saniDocumentsApi('supprimerDocument',Object.assign({id:id},donneesAccesGestion()),function(){messageParametres('✅ Document supprimé.');chargerDocumentsAdminUI()},function(e){messageParametres('❌ '+(e&&e.message?e.message:e),false)})}
+function supprimerRubriqueDocumentUI(id){id=String(id||'').trim();if(!id||!confirm('Supprimer cette rubrique et ses documents ?'))return;saniDocumentsApi('supprimerRubriqueDocument',Object.assign({id:id},donneesAccesGestion()),function(){messageParametres('✅ Rubrique supprimée.');chargerDocumentsAdminUI()},function(e){messageParametres('❌ '+(e&&e.message?e.message:e),false)})}
 
 function chargerDatesAnniversaires(){
   const list=document.getElementById('datesSettingsList');
