@@ -1,4 +1,4 @@
-<!-- SaniStock version 1.0.71 : boutons colorés sans animation -->
+<!-- SaniStock version 1.0.68 : boutons colorés sans animation -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -656,31 +656,11 @@ body{display:block}
 .homeButtons4{position:absolute;z-index:20;left:5%;right:5%;top:52%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 .homeButton4{position:relative;overflow:hidden;border:0;border-radius:16px;padding:12px 10px;min-height:96px;color:#fff;font-weight:900;box-shadow:0 7px 18px rgba(0,0,0,.28);cursor:pointer;touch-action:manipulation;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;transform-origin:center}
 .homeButton4 .homeButtonTitle{font-size:clamp(12px,1.25vw,18px);line-height:1.1}.homeButton4 .homeButtonDesc{font-size:clamp(8px,.78vw,11px);font-weight:600;line-height:1.2;opacity:.95;max-width:100%}
-.homeButton4.stock4{background:#1479e8}.homeButton4.disinfection4{background:#e53935}.homeButton4.medication4{background:#2eaf5d}.homeButton4.settings4{background:#6b7280}.homeButton4.memoDocuments4{background:#f2c400}
+.homeButton4.stock4{background:#1479e8}.homeButton4.disinfection4{background:#e53935}.homeButton4.medication4{background:#2eaf5d}.homeButton4.settings4{background:#6b7280}
 /* Les boutons principaux restent fixes : aucune animation au repos ni au clic. */
 @media(max-width:700px){.homeButtons4{left:3%;right:3%;gap:7px;top:53%}.homeButton4{min-height:88px;padding:8px 5px;border-radius:12px;gap:4px}.homeButton4 .homeButtonTitle{font-size:10px}.homeButton4 .homeButtonDesc{font-size:7.5px;line-height:1.15}.homeButtonIcon{font-size:1.3em}}
 
 .saniVersion{position:absolute;left:50%;bottom:38px;transform:translateX(-50%);z-index:20;color:#fff;background:rgba(0,0,0,.48);padding:4px 10px;border-radius:10px;font-size:11px;font-weight:600;letter-spacing:.2px;pointer-events:none}
-
-/* ===== MÉMO / DOCUMENTS ===== */
-.memoDocumentsGrid{max-width:1000px;margin:18px auto;padding:0 12px}
-.memoRubriqueCard{background:#fff;border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 6px 18px rgba(0,0,0,.12)}
-.memoRubriqueTitle{font-size:19px;font-weight:900;color:#0757a0;margin-bottom:12px}
-.memoDocCard{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border:1px solid #dbe5ee;border-radius:12px;margin-top:8px;background:#f8fbfd}
-.memoDocName{font-weight:800;color:#243746;line-height:1.25}
-.memoDocType{font-size:11px;color:#71879a;margin-top:3px}
-.memoDocOpen{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;background:#1479e8;color:#fff;font-weight:900;border-radius:10px;padding:10px 13px;white-space:nowrap}
-.memoEmpty{background:#fff;border-radius:16px;padding:28px;text-align:center;color:#71879a}
-.docAdminRubrique{background:#fff;border:1px solid #dbe5ee;border-radius:14px;padding:14px;margin:10px 0;position:relative;z-index:1000;pointer-events:auto}
-.docAdminHead{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.docAdminDocs{margin-top:10px}
-.docAdminDoc{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid #edf2f6}
-.docAdminActions{display:flex;gap:6px;flex-wrap:wrap}
-.docSmallBtn{border:0;border-radius:9px;padding:8px 10px;font-weight:800;cursor:pointer;position:relative;z-index:2147483647!important;pointer-events:auto!important;touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none}
-.docSmallBtn.add{background:#1479e8;color:#fff}
-.docSmallBtn.delete{background:#f3d8d8;color:#9b2020}
-@media(max-width:700px){.memoDocCard{align-items:flex-start;flex-direction:column}.memoDocOpen{width:100%}.docAdminHead{align-items:flex-start;flex-direction:column}}
-
 </style>
 
 <style>
@@ -925,7 +905,7 @@ body{display:block}
 
 <style>
 /* ===== CONNEXION SALARIÉ PERSISTANTE ===== */
-/* ===== ANIMATION CONNEXION COEUR + ECG — version 1.0.71 ===== */
+/* ===== ANIMATION CONNEXION COEUR + ECG — version 1.0.68 ===== */
 .loginAmbulanceAnim{display:none;position:relative;height:126px;margin:2px 0 12px;overflow:hidden;border-radius:18px;background:linear-gradient(180deg,#f4fbff,#e4f4ff);border:1px solid #c8e4f7}
 .loginAmbulanceAnim.show{display:block}
 .loginHeartCircle{position:absolute;left:50%;top:50%;width:82px;height:82px;transform:translate(-50%,-52%);border:4px solid rgba(22,168,255,.18);border-top-color:#16a8ff;border-right-color:#0b7bd4;border-radius:50%;animation:loginHeartSpin 1.15s linear infinite}
@@ -1257,7 +1237,6 @@ body{display:block}
       <button id="settingsTabVehicules" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('vehicules')">🚑 Véhicules</button>
       <button id="settingsTabDashboard" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('dashboard')">📊 Tableau de bord</button>
       <button id="settingsTabInformations" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('informations')">📢 Informations</button>
-      <button id="settingsTabDocuments" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('documents')">📄 Documents</button>
     </div>
 
     <div id="settingsMsg" class="settingsMsg"></div>
@@ -1296,15 +1275,7 @@ body{display:block}
       </div>
     </section>
 
-        <section id="settingsPaneDocuments" class="settingsPane" role="tabpanel" hidden>
-      <div class="settingsPaneHead">
-        <div><strong>📄 Mémo / Documents</strong><span>Créer les rubriques et ajouter des PDF ou des photos depuis le téléphone. Cette partie est réservée à l’administrateur.</span></div>
-        <button class="settingsAction" type="button" onclick="creerRubriqueDocumentUI()">＋ Nouvelle rubrique</button>
-      </div>
-      <div id="documentsAdminList"><div class="settingsMsg">Chargement des rubriques…</div></div>
-    </section>
-
-<section id="settingsPaneInformations" class="settingsPane" role="tabpanel" hidden>
+    <section id="settingsPaneInformations" class="settingsPane" role="tabpanel" hidden>
       <div class="settingsPaneHead">
         <div><strong>📢 Informations</strong><span>Publier un message visible par les salariés sur l’accueil.</span></div>
       </div>
@@ -1399,7 +1370,6 @@ body{display:block}
 </span><span class="homeButtonTitle">DÉSINFECTION</span><span class="homeButtonDesc">Nettoyer et suivre les véhicules</span></button>
     <button type="button" class="homeButton4 medication4" onclick="showPage('medicationPage')" aria-label="Mémo médicaments"><span class="homeButtonIcon">💊</span><span class="homeButtonTitle">MÉMO MÉDICAMENTS</span><span class="homeButtonDesc">Infos sur les médicaments</span></button>
     <button type="button" class="homeButton4 settings4" onclick="ouvrirParametres()" aria-label="Paramètres"><span class="homeButtonIcon">⚙️</span><span class="homeButtonTitle">PARAMÈTRES</span><span class="homeButtonDesc">Gérer l’application</span></button>
-    <button type="button" class="homeButton4 memoDocuments4" onclick="showPage('memoDocumentsPage')" aria-label="Mémo Documents"><span class="homeButtonIcon">📄</span><span class="homeButtonTitle">MÉMO / DOCUMENTS</span><span class="homeButtonDesc">Documents et procédures</span></button>
   </div>
   <div id="homeInformation" class="homeInfo" aria-live="polite"></div>
 <div id="homeInformationModal" class="homeInfoModal" aria-hidden="true">
@@ -1414,15 +1384,6 @@ body{display:block}
   <div id="penseBeteAccueil" class="penseBeteAccueil" aria-live="polite">
     <div class="penseTitre">🚑 PENSE-BÊTE DU JOUR</div>
     <div id="penseBeteTexte" class="penseTexte">Malaise → contrôler les constantes et réaliser une glycémie si indiquée.</div>
-  </div>
-</section>
-
-
-<section id="memoDocumentsPage" class="screen page">
-  <button type="button" class="back" onclick="showPage('homePage')">← Accueil</button>
-  <h1>📄 Mémo / Documents</h1>
-  <div id="memoDocumentsContent" class="memoDocumentsGrid">
-    <div class="settingsMsg">Chargement des documents…</div>
   </div>
 </section>
 
@@ -1509,8 +1470,6 @@ body{display:block}
 </main>
 <script>
 function showPage(id){
-  if(id==='memoDocumentsPage') setTimeout(chargerDocumentsUI,60);
-
  var actuelle=document.querySelector('.screen.active');
  var suivante=document.getElementById(id);
 
@@ -2174,7 +2133,6 @@ function ouvrirOngletParametres(onglet){
   const tv=document.getElementById('settingsTabVehicules');
   const td=document.getElementById('settingsTabDashboard');
   const ti=document.getElementById('settingsTabInformations');
-  const tdoc=document.getElementById('settingsTabDocuments');
   const tdate=document.getElementById('settingsTabDates');
   const paneDate=document.getElementById('settingsPaneDates');
 
@@ -2183,67 +2141,31 @@ function ouvrirOngletParametres(onglet){
   const isVeh=onglet==='vehicules';
   const isDash=onglet==='dashboard';
   const isInfo=onglet==='informations';
-  const isDocs=onglet==='documents';
 
   sal.hidden=!isSal;
   paneDate.hidden=!isDates;
   veh.hidden=!isVeh;
   dash.hidden=!isDash;
   document.getElementById('settingsPaneInformations').hidden=!isInfo;
-  document.getElementById('settingsPaneDocuments').hidden=!isDocs;
 
   ts.classList.toggle('active',isSal);
   tdate.classList.toggle('active',isDates);
   tv.classList.toggle('active',isVeh);
   td.classList.toggle('active',isDash);
   ti.classList.toggle('active',isInfo);
-  tdoc.classList.toggle('active',isDocs);
 
   ts.setAttribute('aria-selected',String(isSal));
   tdate.setAttribute('aria-selected',String(isDates));
   tv.setAttribute('aria-selected',String(isVeh));
   td.setAttribute('aria-selected',String(isDash));
   ti.setAttribute('aria-selected',String(isInfo));
-  tdoc.setAttribute('aria-selected',String(isDocs));
 
   if(isSal) chargerGestionSalaries();
   else if(isDates) chargerDatesAnniversaires();
   else if(isVeh) chargerGestionVehicules();
   else if(isDash) chargerTableauBord();
   else if(isInfo) chargerInformationsUI();
-  else if(isDocs) chargerDocumentsAdminUI();
 }
-
-
-/* ===== MÉMO / DOCUMENTS ===== */
-<script>
-(function(){window.saniDocumentsApi=function(action,data,onSuccess,onFailure){var cb='__sani_docs_'+Date.now()+'_'+Math.random().toString(36).slice(2),sc=document.createElement('script'),done=false;function fin(){if(done)return;done=true;try{delete window[cb]}catch(e){}if(sc.parentNode)sc.parentNode.removeChild(sc)}window[cb]=function(r){fin();if(r&&r.success){if(onSuccess)onSuccess(r.data)}else if(onFailure)onFailure({message:r&&r.error||'Erreur SaniStock'})};sc.onerror=function(){fin();if(onFailure)onFailure({message:'Connexion à Google Apps Script impossible'})};sc.src='https://script.google.com/macros/s/AKfycbwLJjr-IJI05AncbMG5QSslmAdOINzpb0iHrSBFzKhJW1JhVoUvPeSDIMOjtVwzwizL/exec'+'?'+new URLSearchParams({api:'1',action:String(action),callback:cb,data:JSON.stringify(data==null?null:data)}).toString();document.head.appendChild(sc);setTimeout(function(){if(!done){fin();if(onFailure)onFailure({message:'Délai de connexion dépassé'})}},20000)}})();
-</script>
-function chargerDocumentsUI(){
-  const box=document.getElementById('memoDocumentsContent'); if(!box)return;
-  box.innerHTML='<div class="settingsMsg">Chargement des documents…</div>';
-  function afficher(data){
-    data=data||{rubriques:[],documents:[]}; const rubriques=Array.isArray(data.rubriques)?data.rubriques:[],documents=Array.isArray(data.documents)?data.documents:[];
-    try{localStorage.setItem('sanistock_documents_cache',JSON.stringify(data));}catch(e){}
-    if(!rubriques.length){box.innerHTML='<div class="memoEmpty">📂 Aucun document disponible pour le moment.</div>';return;}
-    box.innerHTML=rubriques.map(function(r){const docs=documents.filter(function(d){return String(d.rubriqueId)===String(r.id)});return '<div class="memoRubriqueCard"><div class="memoRubriqueTitle">📁 '+escapeHtml(r.nom)+'</div>'+(docs.length?docs.map(function(d){return '<div class="memoDocCard"><div><div class="memoDocName">📄 '+escapeHtml(d.nom)+'</div><div class="memoDocType">'+escapeHtml(d.type||'Document')+'</div></div><a class="memoDocOpen" href="'+escapeAttr_(d.url)+'" target="_blank" rel="noopener">📖 Ouvrir</a></div>'}).join(''):'<div class="memoEmpty">Aucun document dans cette rubrique.</div>')+'</div>'}).join('');
-  }
-  saniDocumentsApi('getDocuments',null,afficher,function(e){try{const c=JSON.parse(localStorage.getItem('sanistock_documents_cache')||'null');if(c){afficher(c);return}}catch(x){}box.innerHTML='<div class="memoEmpty">❌ '+escapeHtml(e&&e.message?e.message:e)+'</div>'});
-}
-function escapeAttr_(value){return String(value||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
-function chargerDocumentsAdminUI(){
-  const box=document.getElementById('documentsAdminList');if(!box)return;box.innerHTML='<div class="settingsMsg">Chargement…</div>';
-  saniDocumentsApi('getDocuments',null,function(data){data=data||{rubriques:[],documents:[]};const rubriques=Array.isArray(data.rubriques)?data.rubriques:[],documents=Array.isArray(data.documents)?data.documents:[];if(!rubriques.length){box.innerHTML='<div class="settingsMsg">Aucune rubrique. Clique sur « Nouvelle rubrique » pour commencer.</div>';return}box.innerHTML=rubriques.map(function(r){const rid=escapeAttr_(r.id),docs=documents.filter(function(d){return String(d.rubriqueId)===String(r.id)});return '<div class="docAdminRubrique"><div class="docAdminHead"><strong>📁 '+escapeHtml(r.nom)+'</strong><div class="docAdminActions"><button type="button" class="docSmallBtn add" data-doc-action="add" data-rubrique-id="'+rid+'">＋ Document</button><button type="button" class="docSmallBtn delete" data-doc-action="delete-rubrique" data-rubrique-id="'+rid+'">🗑️ Rubrique</button></div></div><div class="docAdminDocs">'+(docs.length?docs.map(function(d){return '<div class="docAdminDoc"><span>📄 '+escapeHtml(d.nom)+'</span><button type="button" class="docSmallBtn delete" data-doc-action="delete-document" data-document-id="'+escapeAttr_(d.id)+'">🗑️</button></div>'}).join(''):'<div class="settingsMsg">Aucun document.</div>')+'</div></div>'}).join('')},function(e){box.innerHTML='<div class="settingsMsg">❌ '+escapeHtml(e&&e.message?e.message:e)+'</div>'});
-  if(!box.dataset.docClickReady){box.dataset.docClickReady='1';box.addEventListener('click',function(ev){const btn=ev.target.closest('.docSmallBtn');if(!btn)return;ev.preventDefault();ev.stopPropagation();const a=btn.dataset.docAction;if(a==='add')ajouterDocumentUI(btn.dataset.rubriqueId);else if(a==='delete-document')supprimerDocumentUI(btn.dataset.documentId);else if(a==='delete-rubrique')supprimerRubriqueDocumentUI(btn.dataset.rubriqueId)},true)}
-}
-function creerRubriqueDocumentUI(){const nom=prompt('Nom de la nouvelle rubrique :');if(nom===null||!String(nom).trim())return;saniDocumentsApi('ajouterRubriqueDocument',Object.assign({nom:String(nom).trim()},donneesAccesGestion()),function(){messageParametres('✅ Rubrique créée.');chargerDocumentsAdminUI()},function(e){messageParametres('❌ '+(e&&e.message?e.message:e),false)})}
-function ajouterDocumentUI(rubriqueId){
-  rubriqueId=String(rubriqueId||'').trim();if(!rubriqueId){alert('Rubrique introuvable.');return}const nom=prompt('Nom du document :');if(nom===null||!String(nom).trim())return;
-  const input=document.createElement('input');input.type='file';input.accept='application/pdf,image/*';input.capture='environment';input.style.position='fixed';input.style.left='-99999px';document.body.appendChild(input);
-  input.onchange=function(){const file=input.files&&input.files[0];if(!file){input.remove();return}if(file.size>1500000){alert('⚠️ Fichier trop volumineux. Choisis un PDF ou une photo de moins de 1,5 Mo.');input.remove();return}messageParametres('⏳ Envoi de « '+file.name+' »…');const reader=new FileReader();reader.onload=function(){const result=String(reader.result||''),base64=result.indexOf(',')>=0?result.split(',')[1]:result,type=file.type||(file.name.toLowerCase().endsWith('.pdf')?'application/pdf':'image/jpeg'),data=Object.assign({rubriqueId:rubriqueId,nom:String(nom).trim(),fileName:file.name,mimeType:type,base64:base64},donneesAccesGestion());const iframe=document.createElement('iframe');iframe.name='saniUpload_'+Date.now();iframe.style.display='none';document.body.appendChild(iframe);const form=document.createElement('form');form.method='POST';form.action='https://script.google.com/macros/s/AKfycbwLJjr-IJI05AncbMG5QSslmAdOINzpb0iHrSBFzKhJW1JhVoUvPeSDIMOjtVwzwizL/exec';form.target=iframe.name;form.style.display='none';[['action','ajouterDocumentFichier'],['data',JSON.stringify(data)]].forEach(function(x){const h=document.createElement('input');h.type='hidden';h.name=x[0];h.value=x[1];form.appendChild(h)});document.body.appendChild(form);form.submit();setTimeout(function(){try{form.remove();iframe.remove()}catch(e){}messageParametres('✅ Document envoyé. Actualisation…');chargerDocumentsAdminUI()},5000)};reader.onerror=function(){input.remove();messageParametres('❌ Impossible de lire le fichier.',false)};reader.readAsDataURL(file)};input.click();
-}
-function supprimerDocumentUI(id){id=String(id||'').trim();if(!id||!confirm('Supprimer ce document ?'))return;saniDocumentsApi('supprimerDocument',Object.assign({id:id},donneesAccesGestion()),function(){messageParametres('✅ Document supprimé.');chargerDocumentsAdminUI()},function(e){messageParametres('❌ '+(e&&e.message?e.message:e),false)})}
-function supprimerRubriqueDocumentUI(id){id=String(id||'').trim();if(!id||!confirm('Supprimer cette rubrique et ses documents ?'))return;saniDocumentsApi('supprimerRubriqueDocument',Object.assign({id:id},donneesAccesGestion()),function(){messageParametres('✅ Rubrique supprimée.');chargerDocumentsAdminUI()},function(e){messageParametres('❌ '+(e&&e.message?e.message:e),false)})}
 
 function chargerDatesAnniversaires(){
   const list=document.getElementById('datesSettingsList');
@@ -3221,7 +3143,7 @@ function fermerDetailsDashboard(){
 </script>
 
 <script>
-/* ===== MÉMO MÉDICAMENTS — version 1.0.71 =====
+/* ===== MÉMO MÉDICAMENTS — version 1.0.68 =====
    Liste informative, sans posologie ni protocole.
    La dotation et l'utilisation restent soumises aux protocoles en vigueur.
 */
@@ -8261,6 +8183,6 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 
-<div id="sanistock-version-bottom">SaniStock - version 1.0.71</div>
+<div id="sanistock-version-bottom">SaniStock - version 1.0.68</div>
 </body>
 </html>
