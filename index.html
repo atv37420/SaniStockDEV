@@ -662,6 +662,60 @@ body{display:block}
 
 .saniVersion{position:absolute;left:50%;bottom:38px;transform:translateX(-50%);z-index:20;color:#fff;background:rgba(0,0,0,.48);padding:4px 10px;border-radius:10px;font-size:11px;font-weight:600;letter-spacing:.2px;pointer-events:none}
 
+/* ===== DOCUMENTS / MEMO ===== */
+.docAdminCard{
+  background:#fff;border:1px solid #d8e2ea;border-radius:14px;
+  padding:12px;margin:9px 0;box-shadow:0 4px 12px rgba(18,55,82,.06)
+}
+.docAdminTitle{font-weight:900;color:#073f91;font-size:14px;margin-bottom:9px}
+.docAdminRow{display:grid;grid-template-columns:1fr auto;gap:8px}
+.docAdminForm{display:grid;gap:8px}
+.docAdminRow input,.docAdminForm input[type="text"],.docAdminForm select,.docAdminForm input[type="file"]{
+  width:100%;border:1px solid #cbd8e2;border-radius:10px;padding:10px;
+  background:#fff;color:#173f68;font:inherit
+}
+.docRubriqueAdmin{
+  background:#f7fbfe;border:1px solid #dbe7ef;border-radius:12px;padding:10px;margin:7px 0
+}
+.docRubriqueAdminHead{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.docRubriqueAdminName{font-weight:900;color:#173f68}
+.docItemAdmin{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:8px 0;border-top:1px solid #edf2f6;margin-top:7px
+}
+.docItemAdminName{font-size:11px;font-weight:800;color:#284c69}
+.docOpenBtn,.docDeleteBtn{
+  border:0;border-radius:9px;padding:7px 9px;font-size:11px;font-weight:800;cursor:pointer
+}
+.docOpenBtn{background:#e1effb;color:#0758a5}
+.docDeleteBtn{background:#ffe0e3;color:#a01f2c}
+.docPublicWrap{max-width:900px;margin:0 auto}
+.docPublicIntro{
+  background:#fff;border-radius:18px;padding:18px;margin-bottom:12px;
+  box-shadow:0 6px 20px rgba(0,45,90,.10);color:#486783;text-align:center
+}
+.docPublicCategory{
+  background:#fff;border-radius:16px;padding:14px;margin:10px 0;
+  box-shadow:0 5px 16px rgba(0,45,90,.08)
+}
+.docPublicCategory h2{margin:0;color:#073f91;font-size:17px}
+.docPublicList{display:grid;gap:7px;margin-top:10px}
+.docPublicItem{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:10px;border-radius:11px;background:#f7fbfe;border:1px solid #e1ebf2
+}
+.docPublicName{font-weight:800;color:#173f68;font-size:12px}
+.docPublicType{font-size:10px;color:#71879a;margin-top:2px}
+.docPublicOpen{
+  flex:none;text-decoration:none;border-radius:9px;padding:8px 10px;
+  background:#0758a5;color:#fff;font-size:11px;font-weight:900
+}
+@media(max-width:600px){
+  .docAdminRow{grid-template-columns:1fr}
+  .docPublicItem{align-items:flex-start}
+  .docPublicOpen{margin-left:auto}
+}
+
 /* ===== MÉMO / DOCUMENTS ===== */
 .homeButton4.memoDocuments4{background:#f2c400}
 </style>
@@ -1336,13 +1390,31 @@ body{display:block}
 
     <section id="settingsPaneDocuments" class="settingsPane" role="tabpanel" hidden>
       <div class="settingsPaneHead">
-        <div><strong>📄 Mémo / Documents</strong><span>Gérer les documents et procédures SaniStock.</span></div>
+        <div><strong>📄 Mémo / Documents</strong><span>Gestion réservée au propriétaire SaniStock.</span></div>
       </div>
-      <div class="infoCard" style="margin-top:10px;">
-        <strong>📁 Gestion des documents</strong>
-        <p style="font-size:11px;color:#60778c;margin:7px 0 0;">
-          La gestion des PDF et photos sera intégrée ici, sans modifier les autres fonctions de SaniStock.
-        </p>
+
+      <div class="docAdminCard">
+        <div class="docAdminTitle">📁 1. Créer une rubrique</div>
+        <div class="docAdminRow">
+          <input id="docRubriqueNom" type="text" maxlength="80" placeholder="Ex. Protocoles, Véhicules, Sécurité…">
+          <button type="button" class="settingsAction" onclick="ajouterRubriqueDocumentUI()">➕ Ajouter</button>
+        </div>
+      </div>
+
+      <div class="docAdminCard">
+        <div class="docAdminTitle">📤 2. Ajouter un document</div>
+        <div class="docAdminForm">
+          <input id="docNom" type="text" maxlength="120" placeholder="Nom du document">
+          <select id="docRubriqueSelect"><option value="">Choisir une rubrique</option></select>
+          <input id="docFichier" type="file" accept="application/pdf,image/*" capture="environment">
+          <button type="button" class="settingsAction" onclick="ajouterDocumentFichierUI()">📤 Ajouter le PDF / la photo</button>
+          <div id="docUploadInfo" class="settingsMsg"></div>
+        </div>
+      </div>
+
+      <div class="docAdminCard">
+        <div class="docAdminTitle">🗂️ Documents actuels</div>
+        <div id="documentsAdminList"><div class="settingsMsg">Chargement…</div></div>
       </div>
     </section>
 
@@ -1565,6 +1637,7 @@ function showPage(id){
 
  window.scrollTo(0,0);
  if(id==='stockPage') chargerStock();
+ if(id==='memoDocumentsPage') setTimeout(function(){ if(typeof chargerDocumentsPublic==='function') chargerDocumentsPublic(); },0);
  if(id==='medicationPage') setTimeout(function(){ if(typeof renderMedicationMemo==='function') renderMedicationMemo(); },0);
 
  setTimeout(function(){
@@ -2246,6 +2319,7 @@ function ouvrirOngletParametres(onglet){
   else if(isVeh) chargerGestionVehicules();
   else if(isDash) chargerTableauBord();
   else if(isInfo) chargerInformationsUI();
+  else if(isDocs) chargerDocumentsAdmin();
 }
 
 function chargerDatesAnniversaires(){
@@ -2368,6 +2442,155 @@ function fermerMessageAnniversaire(){
   if(!overlay) return;
   overlay.classList.remove('open');
   overlay.setAttribute('aria-hidden','true');
+}
+
+
+function chargerDocumentsPublic(){
+  const list=document.getElementById('documentsPublicList');
+  if(!list) return;
+  list.innerHTML='<div class="card">📄 Chargement des documents…</div>';
+
+  google.script.run
+    .withSuccessHandler(function(data){
+      data=data||{};
+      const rubriques=Array.isArray(data.rubriques)?data.rubriques:[];
+      const docs=Array.isArray(data.documents)?data.documents:[];
+      if(!rubriques.length){
+        list.innerHTML='<div class="card">📁 Aucun document disponible pour le moment.</div>';
+        return;
+      }
+      list.innerHTML=rubriques.map(function(r){
+        const rd=docs.filter(function(d){return String(d.rubriqueId)===String(r.id);});
+        return '<div class="docPublicCategory">'+
+          '<h2>📁 '+escapeHtml(r.nom)+'</h2>'+
+          (rd.length ? '<div class="docPublicList">'+rd.map(function(d){
+            const icon=String(d.type||'').toUpperCase()==='PHOTO'?'🖼️':'📄';
+            return '<div class="docPublicItem">'+
+              '<div><div class="docPublicName">'+icon+' '+escapeHtml(d.nom)+'</div>'+
+              '<div class="docPublicType">'+escapeHtml(d.type||'DOCUMENT')+'</div></div>'+
+              '<a class="docPublicOpen" href="'+escapeHtml(d.url)+'" target="_blank" rel="noopener">Ouvrir</a>'+
+            '</div>';
+          }).join('')+'</div>' : '<div class="settingsMsg">Aucun document dans cette rubrique.</div>')+
+        '</div>';
+      }).join('');
+    })
+    .withFailureHandler(function(err){
+      list.innerHTML='<div class="card">❌ Impossible de charger les documents.<br><small>'+escapeHtml(err&&err.message?err.message:err)+'</small></div>';
+    })
+    .getDocuments();
+}
+
+function chargerDocumentsAdmin(){
+  const list=document.getElementById('documentsAdminList');
+  if(!list) return;
+  list.innerHTML='<div class="settingsMsg">Chargement des documents…</div>';
+  google.script.run
+    .withSuccessHandler(function(data){
+      data=data||{};
+      const rubriques=Array.isArray(data.rubriques)?data.rubriques:[];
+      const docs=Array.isArray(data.documents)?data.documents:[];
+      const select=document.getElementById('docRubriqueSelect');
+      if(select){
+        select.innerHTML='<option value="">Choisir une rubrique</option>'+
+          rubriques.map(function(r){return '<option value="'+escapeHtml(r.id)+'">'+escapeHtml(r.nom)+'</option>';}).join('');
+      }
+      if(!rubriques.length){
+        list.innerHTML='<div class="settingsMsg">Aucune rubrique. Crée d’abord une rubrique ci-dessus.</div>';
+        return;
+      }
+      list.innerHTML=rubriques.map(function(r){
+        const rd=docs.filter(function(d){return String(d.rubriqueId)===String(r.id);});
+        return '<div class="docRubriqueAdmin">'+
+          '<div class="docRubriqueAdminHead"><span class="docRubriqueAdminName">📁 '+escapeHtml(r.nom)+'</span>'+
+          '<button class="docDeleteBtn" type="button" onclick="supprimerRubriqueDocumentUI(\''+String(r.id).replace(/'/g,"\\'")+'\')">🗑️ Rubrique</button></div>'+
+          (rd.length?rd.map(function(d){
+            return '<div class="docItemAdmin"><div class="docItemAdminName">📄 '+escapeHtml(d.nom)+'</div>'+
+              '<div style="display:flex;gap:5px"><button class="docOpenBtn" type="button" onclick="window.open(\''+String(d.url).replace(/'/g,"\\'")+'\',\'_blank\')">Ouvrir</button>'+
+              '<button class="docDeleteBtn" type="button" onclick="supprimerDocumentUI(\''+String(d.id).replace(/'/g,"\\'")+'\')">🗑️</button></div></div>';
+          }).join(''):'<div class="settingsMsg">Aucun document.</div>')+
+        '</div>';
+      }).join('');
+    })
+    .withFailureHandler(function(err){
+      list.innerHTML='<div class="settingsMsg">Erreur : '+escapeHtml(err&&err.message?err.message:err)+'</div>';
+    })
+    .getDocuments();
+}
+
+function ajouterRubriqueDocumentUI(){
+  const input=document.getElementById('docRubriqueNom');
+  const nom=(input&&input.value||'').trim();
+  if(!nom){alert('⚠️ Indique le nom de la rubrique.');return;}
+  google.script.run
+    .withSuccessHandler(function(){
+      input.value='';
+      chargerDocumentsAdmin();
+      alert('✅ Rubrique ajoutée.');
+    })
+    .withFailureHandler(function(err){alert('❌ '+(err&&err.message?err.message:err));})
+    .ajouterRubriqueDocument(Object.assign({nom:nom},donneesAccesGestion()));
+}
+
+function ajouterDocumentFichierUI(){
+  const nom=(document.getElementById('docNom').value||'').trim();
+  const rubriqueId=document.getElementById('docRubriqueSelect').value;
+  const input=document.getElementById('docFichier');
+  const info=document.getElementById('docUploadInfo');
+  const file=input&&input.files&&input.files[0];
+
+  if(!nom){alert('⚠️ Indique le nom du document.');return;}
+  if(!rubriqueId){alert('⚠️ Choisis une rubrique.');return;}
+  if(!file){alert('⚠️ Choisis un PDF ou une photo.');return;}
+  if(file.type!=='application/pdf' && file.type.indexOf('image/')!==0){
+    alert('⚠️ Seuls les PDF et les photos sont acceptés.');return;
+  }
+  if(file.size>1500000){
+    alert('⚠️ Le fichier doit faire moins de 1,5 Mo. Pour une photo, utilise une photo compressée.');return;
+  }
+
+  info.textContent='📤 Préparation du fichier…';
+  const reader=new FileReader();
+  reader.onload=function(){
+    const result=String(reader.result||'');
+    const base64=result.indexOf(',')>=0?result.split(',')[1]:result;
+    info.textContent='📤 Envoi de '+file.name+'…';
+    google.script.run
+      .withSuccessHandler(function(){
+        document.getElementById('docNom').value='';
+        input.value='';
+        info.textContent='✅ Document ajouté.';
+        chargerDocumentsAdmin();
+        setTimeout(function(){info.textContent='';},3000);
+      })
+      .withFailureHandler(function(err){
+        info.textContent='❌ '+(err&&err.message?err.message:err);
+      })
+      .ajouterDocumentFichier(Object.assign({
+        rubriqueId:rubriqueId,
+        nom:nom,
+        fileName:file.name,
+        mimeType:file.type,
+        base64:base64
+      },donneesAccesGestion()));
+  };
+  reader.onerror=function(){info.textContent='❌ Impossible de lire le fichier.';};
+  reader.readAsDataURL(file);
+}
+
+function supprimerDocumentUI(id){
+  if(!confirm('Supprimer ce document ?')) return;
+  google.script.run
+    .withSuccessHandler(function(){chargerDocumentsAdmin();})
+    .withFailureHandler(function(err){alert('❌ '+(err&&err.message?err.message:err));})
+    .supprimerDocument(Object.assign({id:id},donneesAccesGestion()));
+}
+
+function supprimerRubriqueDocumentUI(id){
+  if(!confirm('Supprimer cette rubrique et les documents qu’elle contient ?')) return;
+  google.script.run
+    .withSuccessHandler(function(){chargerDocumentsAdmin();})
+    .withFailureHandler(function(err){alert('❌ '+(err&&err.message?err.message:err));})
+    .supprimerRubriqueDocument(Object.assign({id:id},donneesAccesGestion()));
 }
 
 function chargerInformationsUI(){
@@ -8275,12 +8498,13 @@ if ("serviceWorker" in navigator) {
     <h1>📄 MÉMO / DOCUMENTS</h1>
   </div>
 
-  <div class="card" style="margin:0 auto;max-width:900px;">
-    <h2 style="margin-top:0;color:#073f91;">📁 Documents et procédures</h2>
-    <p style="margin-bottom:0;">Retrouvez ici les documents utiles à l’équipe SaniStock.</p>
-    <div style="margin-top:18px;padding:16px;border-radius:14px;background:#fff8d6;border:1px solid #f2c400;text-align:left;">
-      <strong style="color:#173f68;">📄 Mémo / Documents</strong>
-      <div style="margin-top:6px;color:#555;">La gestion des PDF et photos sera ajoutée dans cette rubrique.</div>
+  <div class="docPublicWrap">
+    <div class="docPublicIntro">
+      <h2 style="margin:0 0 6px;color:#073f91;">📁 Documents et procédures</h2>
+      <div style="font-size:12px;">Consultez les documents utiles à l’équipe SaniStock.</div>
+    </div>
+    <div id="documentsPublicList">
+      <div class="card">📄 Chargement des documents…</div>
     </div>
   </div>
 </section>
