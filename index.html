@@ -18,6 +18,9 @@
 
 
 <script>
+/* ===== URL API DEV SaniStock ===== */
+window.SANISTOCK_API_URL = 'https://script.google.com/macros/s/AKfycbwLJjr-IJI05AncbMG5QSslmAdOINzpb0iHrSBFzKhJW1JhVoUvPeSDIMOjtVwzwizL/exec';
+
 /* ===== PONT GITHUB -> GOOGLE APPS SCRIPT + MODE HORS LIGNE ===== */
 (function(){
   const API_URL = 'https://script.google.com/macros/s/AKfycbwLJjr-IJI05AncbMG5QSslmAdOINzpb0iHrSBFzKhJW1JhVoUvPeSDIMOjtVwzwizL/exec';
@@ -2619,7 +2622,7 @@ function ajouterDocumentFichierUI(){
 
       const form=document.createElement('form');
       form.method='POST';
-      form.action=API_URL;
+      form.action=window.SANISTOCK_API_URL;
       form.target=iframeName;
       form.style.display='none';
 
