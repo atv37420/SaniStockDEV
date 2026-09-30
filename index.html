@@ -2701,6 +2701,12 @@ function ajouterDocumentFichierUI(){
         base64:base64
       },donneesAccesGestion());
 
+      /*
+       * IMPORTANT : on n'attend plus de postMessage provenant d'Apps Script.
+       * L'iframe sert uniquement de transport pour le POST.
+       * Après son chargement, on relit Documents avec l'API JSONP pour vérifier
+       * que la ligne a réellement été créée.
+       */
       const iframeName='sanistockUploadFrame_'+Date.now();
       const iframe=document.createElement('iframe');
       iframe.name=iframeName;
@@ -2727,52 +2733,78 @@ function ajouterDocumentFichierUI(){
       document.body.appendChild(form);
 
       let termine=false;
+      let formulaireEnvoye=false;
+      let delaiVerification=null;
+
       const nettoyer=function(){
+        if(delaiVerification) clearTimeout(delaiVerification);
         setTimeout(function(){
           if(form.parentNode) form.parentNode.removeChild(form);
           if(iframe.parentNode) iframe.parentNode.removeChild(iframe);
         },1000);
       };
 
-      // Le POST est exécuté dans une iframe. Apps Script renvoie maintenant
-      // un message sécurisé à la page par postMessage : succès OU erreur réelle.
-      const messageHandler=function(event){
-        // La réponse vient de l'iframe Apps Script, donc son origin n'est
-        // pas celui de GitHub Pages. On vérifie la fenêtre source à la place.
-        if(event.source !== iframe.contentWindow) return;
-        const d=event.data||{};
-        if(d.sanistockUpload !== 'SANISTOCK_UPLOAD') return;
+      const terminer=function(ok,message){
         if(termine) return;
         termine=true;
-        window.removeEventListener('message',messageHandler);
-        if(d.success){
-          info.textContent='✅ Document ajouté dans « Documents ».';
+        iframe.onload=null;
+        if(ok){
+          info.textContent='✅ Document ajouté dans « Documents ».'.replace('Documents', 'Documents');
           nettoyer();
           if(inputDoc) inputDoc.value='';
           if(inputPhoto) inputPhoto.value='';
-          document.getElementById('docNom').value='';
+          const champNom=document.getElementById('docNom');
+          if(champNom) champNom.value='';
           afficherChoixDocument_('Aucun fichier choisi.');
           chargerDocumentsAdmin();
           setTimeout(function(){info.textContent='';},3000);
         }else{
-          info.textContent='❌ '+String(d.error||'L’ajout du document a échoué.');
+          info.textContent='❌ '+message;
           nettoyer();
         }
       };
-      window.addEventListener('message',messageHandler);
+
+      const verifierDocument=function(){
+        sendJsonp('getDocuments',{},function(rep){
+          const docs=(rep&&rep.documents)||[];
+          const trouve=docs.some(function(d){
+            return String(d.rubriqueId||'')===String(rubriqueId) &&
+                   String(d.nom||'').trim()===String(nom).trim() &&
+                   String(d.url||'').trim()!=='';
+          });
+
+          if(trouve){
+            terminer(true,'');
+          }else{
+            terminer(false,'Le serveur a répondu, mais aucun document enregistré n’a été trouvé dans la feuille Documents.');
+          }
+        },function(err){
+          terminer(false,'Le fichier a été envoyé, mais la vérification de Documents a échoué : '+(err&&err.message?err.message:err));
+        });
+      };
+
+      iframe.onload=function(){
+        if(!formulaireEnvoye || termine) return;
+        /* L'iframe est chargée : on laisse Apps Script finir son écriture,
+           puis on vérifie la feuille. */
+        delaiVerification=setTimeout(verifierDocument,1200);
+      };
 
       info.textContent='📤 Envoi de '+file.name+'…';
       form.submit();
+      formulaireEnvoye=true;
 
-      // Sécurité : si Google ne renvoie aucune réponse après 30 s.
+      /* Si l'iframe ne déclenche pas onload, on vérifie quand même après 8 s. */
+      setTimeout(function(){
+        if(!termine) verifierDocument();
+      },15000);
+
+      /* Sécurité finale. */
       setTimeout(function(){
         if(!termine){
-          termine=true;
-          window.removeEventListener('message',messageHandler);
-          info.textContent='⚠️ Aucune réponse du serveur. Vérifie le déploiement Apps Script DEV.';
-          nettoyer();
+          terminer(false,'Aucune confirmation du serveur Apps Script DEV. Vérifie que le dernier déploiement DEV utilise bien le Code.gs actuel.');
         }
-      },30000);
+      },20000);
 
     }catch(err){
       info.textContent='❌ Erreur pendant l’envoi : '+(err&&err.message?err.message:err);
@@ -2781,6 +2813,7 @@ function ajouterDocumentFichierUI(){
   reader.onerror=function(){info.textContent='❌ Impossible de lire le fichier.';};
   reader.readAsDataURL(file);
 }
+
 function supprimerDocumentUI(id){
   if(!confirm('Supprimer ce document ?')) return;
   sendJsonp('supprimerDocument',
