@@ -676,7 +676,7 @@ body{display:block}
 .docAdminDocs{margin-top:10px}
 .docAdminDoc{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid #edf2f6}
 .docAdminActions{display:flex;gap:6px;flex-wrap:wrap}
-.docSmallBtn{border:0;border-radius:9px;padding:8px 10px;font-weight:800;cursor:pointer}
+.docSmallBtn{border:0;border-radius:9px;padding:8px 10px;font-weight:800;cursor:pointer;position:relative;z-index:99999;pointer-events:auto;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .docSmallBtn.add{background:#1479e8;color:#fff}
 .docSmallBtn.delete{background:#f3d8d8;color:#9b2020}
 @media(max-width:700px){.memoDocCard{align-items:flex-start;flex-direction:column}.memoDocOpen{width:100%}.docAdminHead{align-items:flex-start;flex-direction:column}}
@@ -2272,7 +2272,7 @@ function chargerDocumentsAdminUI(){
     box.innerHTML=rubriques.map(function(r){
       const docs=documents.filter(function(d){return String(d.rubriqueId)===String(r.id);});
       return '<div class="docAdminRubrique"><div class="docAdminHead"><strong>📁 '+escapeHtml(r.nom)+'</strong>'+
-        '<div class="docAdminActions"><button class="docSmallBtn add" onclick="ajouterDocumentUI('+JSON.stringify(String(r.id))+')">＋ Document</button>'+
+        '<div class="docAdminActions"><button type="button" class="docSmallBtn add" style="position:relative;z-index:99999;pointer-events:auto;touch-action:manipulation;cursor:pointer;" onclick="event.preventDefault();event.stopPropagation();ajouterDocumentUI('+JSON.stringify(String(r.id))+')">＋ Document</button>'+
         '<button class="docSmallBtn delete" onclick="supprimerRubriqueDocumentUI('+JSON.stringify(String(r.id))+')">🗑️ Rubrique</button></div></div>'+
         '<div class="docAdminDocs">'+(docs.length ? docs.map(function(d){
           return '<div class="docAdminDoc"><span>📄 '+escapeHtml(d.nom)+'</span><button class="docSmallBtn delete" onclick="supprimerDocumentUI('+JSON.stringify(String(d.id))+')">🗑️</button></div>';
