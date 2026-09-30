@@ -262,10 +262,6 @@ window.SANISTOCK_API_URL = 'https://script.google.com/macros/s/AKfycbwLJjr-IJI05
     updateStatus:updateOfflineStatus
   };
 
-  // Rend le pont API accessible aux fonctions de l'interface Documents.
-  // Certaines fonctions UI sont déclarées en dehors de cette IIFE.
-  window.sendJsonp=sendJsonp;
-
   function createRunner(success,failure){
     const target={
       withSuccessHandler(fn){return createRunner(fn,failure);},
@@ -668,44 +664,6 @@ body{display:block}
 @media(max-width:700px){.homeButtons4{left:3%;right:3%;gap:7px;top:53%}.homeButton4{min-height:88px;padding:8px 5px;border-radius:12px;gap:4px}.homeButton4 .homeButtonTitle{font-size:10px}.homeButton4 .homeButtonDesc{font-size:7.5px;line-height:1.15}.homeButtonIcon{font-size:1.3em}}
 
 .saniVersion{position:absolute;left:50%;bottom:38px;transform:translateX(-50%);z-index:20;color:#fff;background:rgba(0,0,0,.48);padding:4px 10px;border-radius:10px;font-size:11px;font-weight:600;letter-spacing:.2px;pointer-events:none}
-
-
-/* ===== CORRECTION CLIC DOCUMENTS / RUBRIQUE ===== */
-#settingsOverlay.open .settingsPanel{
-  position:relative;
-  z-index:10021;
-}
-#settingsOverlay.open #settingsPaneDocuments{
-  position:relative;
-  z-index:10030;
-  pointer-events:auto !important;
-}
-#settingsOverlay.open #settingsPaneDocuments .docAdminCard,
-#settingsOverlay.open #settingsPaneDocuments .docAdminRow,
-#settingsOverlay.open #settingsPaneDocuments #docRubriqueNom,
-#settingsOverlay.open #settingsPaneDocuments button.settingsAction{
-  position:relative;
-  z-index:10031;
-  pointer-events:auto !important;
-}
-#settingsOverlay.open #settingsPaneDocuments #docRubriqueNom{
-  cursor:text;
-}
-#settingsOverlay.open #settingsPaneDocuments button.settingsAction{
-  cursor:pointer;
-  touch-action:manipulation;
-}
-#settingsOverlay.open #settingsPaneDocuments .docAdminCard:first-of-type,
-#settingsOverlay.open #settingsPaneDocuments .docAdminCard:first-of-type *{
-  pointer-events:auto !important;
-}
-#settingsOverlay.open #settingsPaneDocuments button[data-action="ajouter-rubrique"]{
-  position:relative !important;
-  z-index:10050 !important;
-  pointer-events:auto !important;
-  cursor:pointer !important;
-  touch-action:manipulation !important;
-}
 
 /* ===== DOCUMENTS / MEMO ===== */
 .docAdminCard{
@@ -1442,7 +1400,7 @@ body{display:block}
         <div class="docAdminTitle">📁 1. Créer une rubrique</div>
         <div class="docAdminRow">
           <input id="docRubriqueNom" type="text" maxlength="80" placeholder="Ex. Protocoles, Véhicules, Sécurité…">
-          <button type="button" class="settingsAction" data-action="ajouter-rubrique" onclick="return ajouterRubriqueDocumentUI();">➕ Ajouter</button>
+          <button type="button" class="settingsAction" onclick="ajouterRubriqueDocumentUI()">➕ Ajouter</button>
         </div>
       </div>
 
@@ -2615,19 +2573,6 @@ function chargerDocumentsAdmin(){
   });
 }
 
-/* ===== SECURITE CLIC RUBRIQUE DOCUMENTS =====
-   Le bouton est géré aussi par écouteur JavaScript global.
-   Cela évite qu'un overlay ou un handler inline bloque l'action. */
-document.addEventListener('click', function(e){
-  const btn = e.target && e.target.closest ? e.target.closest('#settingsPaneDocuments button[data-action="ajouter-rubrique"]') : null;
-  if(!btn) return;
-  e.preventDefault();
-  e.stopPropagation();
-  try { ajouterRubriqueDocumentUI(); } catch(err) {
-    alert('❌ Erreur : ' + (err && err.message ? err.message : err));
-  }
-}, true);
-
 function ajouterRubriqueDocumentUI(){
   const input=document.getElementById('docRubriqueNom');
   const nom=(input&&input.value||'').trim();
@@ -2641,7 +2586,6 @@ function ajouterRubriqueDocumentUI(){
     },
     function(err){alert('❌ '+(err&&err.message?err.message:err));}
   );
-  return false;
 }
 
 function afficherChoixDocument_(type){
@@ -2687,12 +2631,54 @@ function ajouterDocumentFichierUI(){
   }
 
   info.textContent='📤 Préparation de '+file.name+'…';
+
+  // On écoute la réponse réelle envoyée par doPost depuis l'iframe.
+  // Avant cette correction, le simple "load" de l'iframe était interprété
+  // comme une réussite même lorsque Apps Script renvoyait success:false.
+  const messageHandler=function(event){
+    const data=event && event.data;
+    if(!data || data.source!=='SaniStockUpload') return;
+
+    window.removeEventListener('message',messageHandler);
+    termine=true;
+
+    if(data.success){
+      info.textContent='✅ Document enregistré dans Documents.';
+      nettoyer();
+      if(inputDoc) inputDoc.value='';
+      if(inputPhoto) inputPhoto.value='';
+      const nomInput=document.getElementById('docNom');
+      if(nomInput) nomInput.value='';
+      afficherChoixDocument_('Aucun fichier choisi.');
+      chargerDocumentsAdmin();
+      setTimeout(function(){info.textContent='';},4000);
+    }else{
+      info.textContent='❌ '+(data.error||'Le document n’a pas été enregistré.');
+      nettoyer();
+    }
+  };
+
   const reader=new FileReader();
+  let iframe=null;
+  let form=null;
+  let termine=false;
+  let timeoutId=null;
+
+  const nettoyer=function(){
+    if(timeoutId) clearTimeout(timeoutId);
+    setTimeout(function(){
+      if(form && form.parentNode) form.parentNode.removeChild(form);
+      if(iframe && iframe.parentNode) iframe.parentNode.removeChild(iframe);
+    },500);
+  };
+
+  window.addEventListener('message',messageHandler);
 
   reader.onload=function(){
     try{
       const result=String(reader.result||'');
       const base64=result.indexOf(',')>=0?result.split(',')[1]:result;
+
       const payload=Object.assign({
         rubriqueId:rubriqueId,
         nom:nom,
@@ -2701,20 +2687,14 @@ function ajouterDocumentFichierUI(){
         base64:base64
       },donneesAccesGestion());
 
-      /*
-       * IMPORTANT : on n'attend plus de postMessage provenant d'Apps Script.
-       * L'iframe sert uniquement de transport pour le POST.
-       * Après son chargement, on relit Documents avec l'API JSONP pour vérifier
-       * que la ligne a réellement été créée.
-       */
       const iframeName='sanistockUploadFrame_'+Date.now();
-      const iframe=document.createElement('iframe');
+      iframe=document.createElement('iframe');
       iframe.name=iframeName;
       iframe.id=iframeName;
       iframe.style.display='none';
       document.body.appendChild(iframe);
 
-      const form=document.createElement('form');
+      form=document.createElement('form');
       form.method='POST';
       form.action=window.SANISTOCK_API_URL;
       form.target=iframeName;
@@ -2732,85 +2712,30 @@ function ajouterDocumentFichierUI(){
       addField('data',JSON.stringify(payload));
       document.body.appendChild(form);
 
-      let termine=false;
-      let formulaireEnvoye=false;
-      let delaiVerification=null;
-
-      const nettoyer=function(){
-        if(delaiVerification) clearTimeout(delaiVerification);
-        setTimeout(function(){
-          if(form.parentNode) form.parentNode.removeChild(form);
-          if(iframe.parentNode) iframe.parentNode.removeChild(iframe);
-        },1000);
-      };
-
-      const terminer=function(ok,message){
-        if(termine) return;
-        termine=true;
-        iframe.onload=null;
-        if(ok){
-          info.textContent='✅ Document ajouté dans « Documents ».'.replace('Documents', 'Documents');
-          nettoyer();
-          if(inputDoc) inputDoc.value='';
-          if(inputPhoto) inputPhoto.value='';
-          const champNom=document.getElementById('docNom');
-          if(champNom) champNom.value='';
-          afficherChoixDocument_('Aucun fichier choisi.');
-          chargerDocumentsAdmin();
-          setTimeout(function(){info.textContent='';},3000);
-        }else{
-          info.textContent='❌ '+message;
-          nettoyer();
-        }
-      };
-
-      const verifierDocument=function(){
-        sendJsonp('getDocuments',{},function(rep){
-          const docs=(rep&&rep.documents)||[];
-          const trouve=docs.some(function(d){
-            return String(d.rubriqueId||'')===String(rubriqueId) &&
-                   String(d.nom||'').trim()===String(nom).trim() &&
-                   String(d.url||'').trim()!=='';
-          });
-
-          if(trouve){
-            terminer(true,'');
-          }else{
-            terminer(false,'Le serveur a répondu, mais aucun document enregistré n’a été trouvé dans la feuille Documents.');
-          }
-        },function(err){
-          terminer(false,'Le fichier a été envoyé, mais la vérification de Documents a échoué : '+(err&&err.message?err.message:err));
-        });
-      };
-
-      iframe.onload=function(){
-        if(!formulaireEnvoye || termine) return;
-        /* L'iframe est chargée : on laisse Apps Script finir son écriture,
-           puis on vérifie la feuille. */
-        delaiVerification=setTimeout(verifierDocument,1200);
-      };
-
       info.textContent='📤 Envoi de '+file.name+'…';
       form.submit();
-      formulaireEnvoye=true;
 
-      /* Si l'iframe ne déclenche pas onload, on vérifie quand même après 8 s. */
-      setTimeout(function(){
-        if(!termine) verifierDocument();
-      },15000);
-
-      /* Sécurité finale. */
-      setTimeout(function(){
+      timeoutId=setTimeout(function(){
         if(!termine){
-          terminer(false,'Aucune confirmation du serveur Apps Script DEV. Vérifie que le dernier déploiement DEV utilise bien le Code.gs actuel.');
+          window.removeEventListener('message',messageHandler);
+          termine=true;
+          info.textContent='❌ Aucune réponse de Google Apps Script après 30 secondes.';
+          nettoyer();
         }
-      },20000);
+      },30000);
 
     }catch(err){
+      window.removeEventListener('message',messageHandler);
       info.textContent='❌ Erreur pendant l’envoi : '+(err&&err.message?err.message:err);
+      nettoyer();
     }
   };
-  reader.onerror=function(){info.textContent='❌ Impossible de lire le fichier.';};
+
+  reader.onerror=function(){
+    window.removeEventListener('message',messageHandler);
+    info.textContent='❌ Impossible de lire le fichier.';
+  };
+
   reader.readAsDataURL(file);
 }
 
