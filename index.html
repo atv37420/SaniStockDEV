@@ -1649,7 +1649,7 @@ function showPage(id){
 
  window.scrollTo(0,0);
  if(id==='stockPage') chargerStock();
- if(id==='memoDocumentsPage') setTimeout(function(){ if(typeof chargerDocumentsPublic==='function') chargerDocumentsPublic(); },0);
+ if(id==='memoDocumentsPage') setTimeout(function(){ if(typeof chargerDocumentsPublic==='function') chargerDocumentsPublic(); },100);
  if(id==='medicationPage') setTimeout(function(){ if(typeof renderMedicationMemo==='function') renderMedicationMemo(); },0);
 
  setTimeout(function(){
@@ -2473,87 +2473,119 @@ function fermerMessageAnniversaire(){
 function chargerDocumentsPublic(){
   const list=document.getElementById('documentsPublicList');
   if(!list) return;
+
   list.innerHTML='<div class="card">📄 Chargement des documents…</div>';
 
-  google.script.run
-    .withSuccessHandler(function(data){
-      data=data||{};
-      const rubriques=Array.isArray(data.rubriques)?data.rubriques:[];
-      const docs=Array.isArray(data.documents)?data.documents:[];
-      if(!rubriques.length){
-        list.innerHTML='<div class="card">📁 Aucun document disponible pour le moment.</div>';
-        return;
-      }
-      list.innerHTML=rubriques.map(function(r){
-        const rd=docs.filter(function(d){return String(d.rubriqueId)===String(r.id);});
-        return '<div class="docPublicCategory">'+
-          '<h2>📁 '+escapeHtml(r.nom)+'</h2>'+
-          (rd.length ? '<div class="docPublicList">'+rd.map(function(d){
-            const icon=String(d.type||'').toUpperCase()==='PHOTO'?'🖼️':'📄';
-            return '<div class="docPublicItem">'+
-              '<div><div class="docPublicName">'+icon+' '+escapeHtml(d.nom)+'</div>'+
-              '<div class="docPublicType">'+escapeHtml(d.type||'DOCUMENT')+'</div></div>'+
-              '<a class="docPublicOpen" href="'+escapeHtml(d.url)+'" target="_blank" rel="noopener">Ouvrir</a>'+
-            '</div>';
-          }).join('')+'</div>' : '<div class="settingsMsg">Aucun document dans cette rubrique.</div>')+
-        '</div>';
-      }).join('');
-    })
-    .withFailureHandler(function(err){
-      list.innerHTML='<div class="card">❌ Impossible de charger les documents.<br><small>'+escapeHtml(err&&err.message?err.message:err)+'</small></div>';
-    })
-    .getDocuments();
+  sendJsonp('getDocuments',null,function(data){
+    data=data||{};
+    const rubriques=Array.isArray(data.rubriques)?data.rubriques:[];
+    const docs=Array.isArray(data.documents)?data.documents:[];
+
+    if(!rubriques.length){
+      list.innerHTML='<div class="card">📁 Aucun document disponible pour le moment.</div>';
+      return;
+    }
+
+    list.innerHTML=rubriques.map(function(r){
+      const rd=docs.filter(function(d){
+        return String(d.rubriqueId)===String(r.id);
+      });
+
+      return '<div class="docPublicCategory">'+
+        '<h2>📁 '+escapeHtml(r.nom)+'</h2>'+
+        (rd.length
+          ? '<div class="docPublicList">'+rd.map(function(d){
+              const type=String(d.type||'DOCUMENT').toUpperCase();
+              const icon=type==='PHOTO'?'🖼️':'📄';
+              return '<div class="docPublicItem">'+
+                '<div><div class="docPublicName">'+icon+' '+escapeHtml(d.nom)+'</div>'+
+                '<div class="docPublicType">'+escapeHtml(d.type||'DOCUMENT')+'</div></div>'+
+                '<a class="docPublicOpen" href="'+escapeHtml(d.url)+'" target="_blank" rel="noopener noreferrer">Ouvrir</a>'+
+              '</div>';
+            }).join('')+'</div>'
+          : '<div class="settingsMsg">Aucun document dans cette rubrique.</div>')+
+      '</div>';
+    }).join('');
+
+  },function(err){
+    list.innerHTML='<div class="card">❌ Impossible de charger les documents.<br><small>'+
+      escapeHtml(err&&err.message?err.message:err)+'</small></div>';
+  });
 }
 
 function chargerDocumentsAdmin(){
   const list=document.getElementById('documentsAdminList');
   if(!list) return;
+
   list.innerHTML='<div class="settingsMsg">Chargement des documents…</div>';
-  google.script.run
-    .withSuccessHandler(function(data){
-      data=data||{};
-      const rubriques=Array.isArray(data.rubriques)?data.rubriques:[];
-      const docs=Array.isArray(data.documents)?data.documents:[];
-      const select=document.getElementById('docRubriqueSelect');
-      if(select){
-        select.innerHTML='<option value="">Choisir une rubrique</option>'+
-          rubriques.map(function(r){return '<option value="'+escapeHtml(r.id)+'">'+escapeHtml(r.nom)+'</option>';}).join('');
-      }
-      if(!rubriques.length){
-        list.innerHTML='<div class="settingsMsg">Aucune rubrique. Crée d’abord une rubrique ci-dessus.</div>';
-        return;
-      }
-      list.innerHTML=rubriques.map(function(r){
-        const rd=docs.filter(function(d){return String(d.rubriqueId)===String(r.id);});
-        return '<div class="docRubriqueAdmin">'+
-          '<div class="docRubriqueAdminHead"><span class="docRubriqueAdminName">📁 '+escapeHtml(r.nom)+'</span>'+
-          '<button class="docDeleteBtn" type="button" onclick="supprimerRubriqueDocumentUI(\''+String(r.id).replace(/'/g,"\\'")+'\')">🗑️ Rubrique</button></div>'+
-          (rd.length?rd.map(function(d){
-            return '<div class="docItemAdmin"><div class="docItemAdminName">📄 '+escapeHtml(d.nom)+'</div>'+
-              '<div style="display:flex;gap:5px"><button class="docOpenBtn" type="button" onclick="window.open(\''+String(d.url).replace(/'/g,"\\'")+'\',\'_blank\')">Ouvrir</button>'+
-              '<button class="docDeleteBtn" type="button" onclick="supprimerDocumentUI(\''+String(d.id).replace(/'/g,"\\'")+'\')">🗑️</button></div></div>';
-          }).join(''):'<div class="settingsMsg">Aucun document.</div>')+
-        '</div>';
-      }).join('');
-    })
-    .withFailureHandler(function(err){
-      list.innerHTML='<div class="settingsMsg">Erreur : '+escapeHtml(err&&err.message?err.message:err)+'</div>';
-    })
-    .getDocuments();
+
+  sendJsonp('getDocuments',null,function(data){
+    data=data||{};
+    const rubriques=Array.isArray(data.rubriques)?data.rubriques:[];
+    const docs=Array.isArray(data.documents)?data.documents:[];
+
+    const select=document.getElementById('docRubriqueSelect');
+    if(select){
+      select.innerHTML='<option value="">Choisir une rubrique</option>'+
+        rubriques.map(function(r){
+          return '<option value="'+escapeHtml(r.id)+'">'+escapeHtml(r.nom)+'</option>';
+        }).join('');
+    }
+
+    if(!rubriques.length){
+      list.innerHTML='<div class="settingsMsg">Aucune rubrique. Crée d’abord une rubrique ci-dessus.</div>';
+      return;
+    }
+
+    list.innerHTML=rubriques.map(function(r){
+      const rd=docs.filter(function(d){
+        return String(d.rubriqueId)===String(r.id);
+      });
+
+      return '<div class="docRubriqueAdmin">'+
+        '<div class="docRubriqueAdminHead">'+
+          '<span class="docRubriqueAdminName">📁 '+escapeHtml(r.nom)+'</span>'+
+          '<button class="docDeleteBtn" type="button" onclick="supprimerRubriqueDocumentUI(\''+
+            String(r.id).replace(/'/g,"\\'")+'\')">🗑️ Rubrique</button>'+
+        '</div>'+
+        (rd.length
+          ? rd.map(function(d){
+              const icon=String(d.type||'').toUpperCase()==='PHOTO'?'🖼️':'📄';
+              return '<div class="docItemAdmin">'+
+                '<div class="docItemAdminName">'+icon+' '+escapeHtml(d.nom)+'</div>'+
+                '<div style="display:flex;gap:5px">'+
+                  '<button class="docOpenBtn" type="button" onclick="window.open(\''+
+                    String(d.url).replace(/'/g,"\\'")+
+                    '\',\'_blank\')">Ouvrir</button>'+
+                  '<button class="docDeleteBtn" type="button" onclick="supprimerDocumentUI(\''+
+                    String(d.id).replace(/'/g,"\\'")+
+                    '\')">🗑️</button>'+
+                '</div>'+
+              '</div>';
+            }).join('')
+          : '<div class="settingsMsg">Aucun document.</div>')+
+      '</div>';
+    }).join('');
+
+  },function(err){
+    list.innerHTML='<div class="settingsMsg">Erreur : '+
+      escapeHtml(err&&err.message?err.message:err)+'</div>';
+  });
 }
 
 function ajouterRubriqueDocumentUI(){
   const input=document.getElementById('docRubriqueNom');
   const nom=(input&&input.value||'').trim();
   if(!nom){alert('⚠️ Indique le nom de la rubrique.');return;}
-  google.script.run
-    .withSuccessHandler(function(){
+  sendJsonp('ajouterRubriqueDocument',
+    Object.assign({nom:nom},donneesAccesGestion()),
+    function(){
       input.value='';
       chargerDocumentsAdmin();
       alert('✅ Rubrique ajoutée.');
-    })
-    .withFailureHandler(function(err){alert('❌ '+(err&&err.message?err.message:err));})
-    .ajouterRubriqueDocument(Object.assign({nom:nom},donneesAccesGestion()));
+    },
+    function(err){alert('❌ '+(err&&err.message?err.message:err));}
+  );
 }
 
 function afficherChoixDocument_(type){
@@ -2682,18 +2714,20 @@ function ajouterDocumentFichierUI(){
 }
 function supprimerDocumentUI(id){
   if(!confirm('Supprimer ce document ?')) return;
-  google.script.run
-    .withSuccessHandler(function(){chargerDocumentsAdmin();})
-    .withFailureHandler(function(err){alert('❌ '+(err&&err.message?err.message:err));})
-    .supprimerDocument(Object.assign({id:id},donneesAccesGestion()));
+  sendJsonp('supprimerDocument',
+    Object.assign({id:id},donneesAccesGestion()),
+    function(){chargerDocumentsAdmin();},
+    function(err){alert('❌ '+(err&&err.message?err.message:err));}
+  );
 }
 
 function supprimerRubriqueDocumentUI(id){
   if(!confirm('Supprimer cette rubrique et les documents qu’elle contient ?')) return;
-  google.script.run
-    .withSuccessHandler(function(){chargerDocumentsAdmin();})
-    .withFailureHandler(function(err){alert('❌ '+(err&&err.message?err.message:err));})
-    .supprimerRubriqueDocument(Object.assign({id:id},donneesAccesGestion()));
+  sendJsonp('supprimerRubriqueDocument',
+    Object.assign({id:id},donneesAccesGestion()),
+    function(){chargerDocumentsAdmin();},
+    function(err){alert('❌ '+(err&&err.message?err.message:err));}
+  );
 }
 
 function chargerInformationsUI(){
