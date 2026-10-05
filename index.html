@@ -10474,10 +10474,9 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     const obs=document.getElementById('taxiObservations')?.value||'';
     const sig=document.getElementById('taxiSignature')?.value||'';
     let rows=''; let current='';
-    // Le bloc PAPIERS VEHICULE est volontairement généré une seule fois,
-    // après les autres catégories, afin d'éviter le doublon du premier rectangle.
-    const pdfItems = TAXI_ITEMS.filter(function(item){ return item.category !== 'PAPIERS VEHICULE'; })
-      .concat(TAXI_ITEMS.filter(function(item){ return item.category === 'PAPIERS VEHICULE'; }));
+    // PAPIERS VEHICULE doit apparaître une seule fois, juste après INFORMATIONS GENERALES,
+    // comme sur la fiche Taxi originale.
+    const pdfItems = TAXI_ITEMS.filter(function(item){ return item.category !== 'PAPIERS VEHICULE'; });
     pdfItems.forEach(function(item){
       const i=TAXI_ITEMS.indexOf(item);
       if(item.category!==current){
@@ -10512,6 +10511,16 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
       '<div class="infoTitle">INFORMATIONS GENERALES</div><div class="info">'+
       '<div class="line">Date : <b>'+taxiPdfEscape(taxiPdfDate(date))+'</b></div><div class="line">Immatriculation : <b>'+taxiPdfEscape(immat)+'</b></div><div class="line">Kms : <b>'+taxiPdfEscape(kms)+'</b></div>'+
       '<div class="wide line">Equipage : <b>'+taxiPdfEscape(equipage)+'</b></div></div>'+
+      '<div class="paperTitle">PAPIERS VEHICULE</div><div class="papers">'+(function(){
+        const papers=TAXI_ITEMS.filter(function(item){return item.category==='PAPIERS VEHICULE';});
+        let ph='';
+        papers.forEach(function(item,i){
+          const idx=TAXI_ITEMS.indexOf(item);
+          const etat=taxiEtat(idx);
+          ph+='<div class="paperRow"><span>'+taxiPdfEscape(item.name)+'</span><span>'+(etat==='present'?'✓':etat==='manque'?'✗':'–')+'</span></div>';
+        });
+        return ph;
+      })()+'</div>'+
       '<div class="materialHeader">MATERIEL VEHICULE</div><table><tr class="head"><td class="item">Inventaire</td><td class="qty">Quantité</td><td>Présent</td><td>Manque</td><td class="red">Quantité<br>manquante</td></tr>'+rows+'</table>'+
       '</div><div class="page page2"><div class="title">FICHE DE CONTRÔLE ET D’ENTRETIEN MENSUEL DES TAXIS</div>'+
       '<div class="bottom"><div class="bottomTitle">OBSERVATIONS</div><div class="obs">'+taxiPdfEscape(obs)+'</div><div class="bottomTitle">SIGNATURES</div><div class="sign">Chauffeur : <b>'+taxiPdfEscape(equipage)+'</b>'+(sig?'<img src="'+sig+'" alt="Signature">':'')+'</div></div>'+
