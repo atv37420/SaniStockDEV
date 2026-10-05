@@ -10286,6 +10286,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     html += '<div class="taxiActions">';
     html += '<button type="button" class="taxiValidate" onclick="validerChecklistTaxi()">✓ TERMINER LE CONTRÔLE</button>';
     html += '<button type="button" class="taxiPdfBtn" onclick="genererPdfTaxi()">📄 GÉNÉRER LE PDF</button>';
+    html += '<button type="button" class="taxiMailBtn" onclick="envoyerMailTaxi()">📧 ENVOYER PAR MAIL</button>';
     html += '</div>';
     html += '<div class="taxiNotice">L’équipage est choisi parmi les salariés déjà enregistrés dans SaniStock. La date et l’immatriculation sont préremplies automatiquement.</div>';
     html += '</div>';
@@ -10535,6 +10536,48 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
       '<div class="bottom"><div class="bottomTitle">OBSERVATIONS</div><div class="obs">'+taxiPdfEscape(obs)+'</div><div class="bottomTitle">SIGNATURES</div><div class="sign">Chauffeur : <b>'+taxiPdfEscape(equipage)+'</b>'+(sig?'<img src="'+sig+'" alt="Signature">':'')+'</div></div>'+
       '</div></body></html>';
   }
+  window.envoyerMailTaxi=function(){
+    const equipage=document.getElementById('taxiEquipage')?.value||'';
+    const date=document.getElementById('taxiDate')?.value||'';
+    const immat=document.getElementById('taxiImmatriculation')?.value||'';
+    const kms=document.getElementById('taxiKms')?.value||'';
+    const vehicle=(document.getElementById('checklistTaxiSubtitle')?.textContent||'').replace(/^Véhicule\s*:\s*/,'');
+    if(!equipage || !date || !immat){
+      alert('Merci de vérifier le chauffeur, la date et l’immatriculation avant l’envoi du mail.');
+      return;
+    }
+    let dest='';
+    try{ dest=String(localStorage.getItem('sanistock_taxi_email_dest')||'').trim(); }catch(e){}
+    dest=prompt('Adresse e-mail du destinataire :',dest)||'';
+    dest=dest.trim();
+    if(!dest) return;
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(dest)){
+      alert('Adresse e-mail invalide.');
+      return;
+    }
+    try{localStorage.setItem('sanistock_taxi_email_dest',dest);}catch(e){}
+    const d=taxiPdfDate(date);
+    const subject='Check-list Taxi - '+immat+' - '+d;
+    const body=[
+      'Bonjour,',
+      '',
+      'Veuillez trouver ci-joint la fiche de contrôle et d’entretien mensuel du taxi.',
+      '',
+      'Véhicule : '+vehicle,
+      'Immatriculation : '+immat,
+      'Chauffeur : '+equipage,
+      'Date : '+d,
+      'Kms : '+kms,
+      '',
+      'Le PDF doit être joint à ce message après sa génération depuis SaniStock.',
+      '',
+      'Cordialement,',
+      'SaniStock'
+    ].join('\n');
+    const mailto='mailto:'+encodeURIComponent(dest)+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
+    window.location.href=mailto;
+  };
+
   window.genererPdfTaxi=function(){
     const detail=document.getElementById('checklistTaxiDetail');
     if(!detail) return;
@@ -10548,6 +10591,12 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 </script>
 
 
+
+<style id="taxi-mail-style">
+.taxiMailBtn{background:#0b7a55;color:#fff;border:0;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,.12)}
+.taxiMailBtn:hover{filter:brightness(.96)}
+@media(max-width:700px){.taxiActions{display:flex;flex-direction:column;gap:8px}.taxiMailBtn,.taxiPdfBtn,.taxiValidate{width:100%}}
+</style>
 
 <style id="taxi-signature-style">
 .taxiSignatureBox{width:100%;box-sizing:border-box}
