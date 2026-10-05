@@ -10435,5 +10435,64 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 })();
 </script>
 
+
+<script id="sanistock-taxi-chauffeur-auto">
+(function(){
+  function nomSalarieConnecte(){
+    try{
+      return String(localStorage.getItem('sanistock_employee_name')||'').trim();
+    }catch(e){ return ''; }
+  }
+
+  function appliquerChauffeurAutomatique(){
+    var root=document.getElementById('checklistTaxiDetail');
+    if(!root) return;
+
+    var nom=nomSalarieConnecte();
+    var input=root.querySelector('#taxiEquipage, input[name="taxiEquipage"]');
+    if(input){
+      input.value=nom;
+      input.readOnly=true;
+      input.setAttribute('readonly','readonly');
+      input.placeholder=nom ? '' : 'Salarié non reconnu';
+    }
+
+    var select=root.querySelector('#taxiEquipageSelect, select[name="taxiEquipage"]');
+    if(select && nom){
+      var trouve=false;
+      Array.from(select.options).forEach(function(o){
+        if(String(o.value).trim()===nom){
+          select.value=o.value;
+          trouve=true;
+        }
+      });
+      if(trouve){
+        select.disabled=true;
+        select.setAttribute('aria-label','Chauffeur connecté');
+      }
+    }
+
+    var chauffeur=root.querySelector('.taxiChauffeurAuto');
+    if(chauffeur){
+      chauffeur.textContent=nom ? '👤 '+nom : '⚠️ Chauffeur non reconnu';
+    }
+  }
+
+  window.sanistockAppliquerChauffeurTaxi=appliquerChauffeurAutomatique;
+
+  document.addEventListener('click',function(e){
+    if(e.target && e.target.closest && e.target.closest('[data-check-veh], #checklistContent')){
+      setTimeout(appliquerChauffeurAutomatique,80);
+      setTimeout(appliquerChauffeurAutomatique,400);
+    }
+  });
+
+  window.addEventListener('load',function(){
+    setTimeout(appliquerChauffeurAutomatique,300);
+    setTimeout(appliquerChauffeurAutomatique,1200);
+  });
+})();
+</script>
+
 </body>
 </html>
