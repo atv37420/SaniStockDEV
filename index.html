@@ -10445,10 +10445,88 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     alert('✅ Contrôle TAXI enregistré sur cet appareil.');
   };
 
+  function taxiPdfEscape(v){
+    return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function taxiPdfDate(v){
+    if(!v) return '';
+    const p=String(v).split('-');
+    return p.length===3 ? p[2]+'/'+p[1]+'/'+p[0] : v;
+  }
+  function taxiEtat(i){
+    const p=document.querySelector('input[name="taxiItem'+i+'"][value="present"]');
+    const m=document.querySelector('input[name="taxiItem'+i+'"][value="manque"]');
+    return m&&m.checked?'manque':(p&&p.checked?'present':'');
+  }
+  function taxiSectionClass(cat){
+    if(cat==='Sécurité') return 'sec';
+    if(cat==='Trousse de secours') return 'trousse';
+    if(cat==='Valise noir') return 'valise';
+    if(cat==='Désinfection') return 'desinf';
+    return 'normal';
+  }
+  function taxiBuildPdfHtml(){
+    const vehicle=(document.getElementById('checklistTaxiSubtitle')?.textContent||'').replace(/^Véhicule\s*:\s*/,'');
+    const equipage=document.getElementById('taxiEquipage')?.value||'';
+    const date=document.getElementById('taxiDate')?.value||'';
+    const immat=document.getElementById('taxiImmatriculation')?.value||'';
+    const kms=document.getElementById('taxiKms')?.value||'';
+    const obs=document.getElementById('taxiObservations')?.value||'';
+    const sig=document.getElementById('taxiSignature')?.value||'';
+    let rows=''; let current='';
+    TAXI_ITEMS.forEach(function(item,i){
+      if(item.category!==current){
+        current=item.category;
+        rows += '<tr class="section '+taxiSectionClass(current)+'"><td colspan="5">'+taxiPdfEscape(current)+'</td></tr>';
+      }
+      const etat=taxiEtat(i);
+      const miss=document.getElementById('taxiMissing'+i)?.value||'';
+      rows += '<tr><td class="item">'+taxiPdfEscape(item.name)+'</td><td class="qty">'+taxiPdfEscape(item.quantity)+'</td><td class="state">'+(etat==='present'?'✓':'–')+'</td><td class="state">'+(etat==='manque'?'✓':'–')+'</td><td class="missing">'+taxiPdfEscape(miss||'')+'</td></tr>';
+    });
+    return '<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Fiche de contrôle et d’entretien mensuel des taxis</title><style>'+`
+      @page{size:A4 portrait;margin:9mm 8mm 9mm 8mm}
+      *{box-sizing:border-box} body{font-family:Arial,Helvetica,sans-serif;color:#111;margin:0;font-size:9px}
+      .page{width:100%;min-height:277mm;page-break-after:always}.page:last-child{page-break-after:auto}
+      .title{text-align:center;color:#527b43;font-weight:700;font-size:12px;margin:1mm 0 8mm;text-transform:uppercase}
+      table{width:100%;border-collapse:collapse;table-layout:fixed;border:1.5px solid #111}
+      th,td{border:1px solid #111;padding:3px 4px;vertical-align:middle;line-height:1.12}
+      .infoTitle,.paperTitle,.matTitle{background:#d9d9d9;text-align:center;color:#52739a;text-decoration:underline;font-weight:700;font-size:11px;padding:3px;border:1.5px solid #111;border-bottom:0}
+      .info{background:#d9d9d9;border:1.5px solid #111;padding:5px 6px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px 12px}
+      .info .wide{grid-column:1/4}.line{white-space:nowrap}.label{font-weight:400}.dots{border-bottom:1px dotted #333;display:inline-block;min-width:55px;height:11px}
+      .papers{background:#d9d9d9;border:1.5px solid #111;padding:4px 6px;display:grid;grid-template-columns:1fr 1fr;column-gap:18px}
+      .paperRow{display:flex;justify-content:space-between;border-bottom:0;min-height:15px}.paperRow span:last-child{margin-left:8px}
+      .materialHeader{background:#d9d9d9;text-align:center;color:#52739a;text-decoration:underline;font-weight:700;font-size:11px;padding:3px;border:1.5px solid #111;border-bottom:0;margin-top:0}
+      .head td{background:#e6e6e6;font-weight:700;text-align:center}.head .red{color:#e11}
+      .section td{text-align:center;font-weight:700;padding:4px;color:#111}.section.sec td{background:#fff500}.section.trousse td{background:#f00000;color:#111}.section.valise td{background:#000;color:#fff}.section.desinf td{background:#d9d9d9}.section.normal td{background:#d9d9d9;color:#52739a;text-decoration:underline}
+      tr:not(.section):nth-child(even) td{background:#d1d1d1}.item{width:43%}.qty{width:10%;text-align:center}.state{width:9%;text-align:center}.missing{width:20%;text-align:center;text-decoration:underline dotted}
+      .bottom{margin-top:7mm}.bottomTitle{background:#d9d9d9;border:1.5px solid #111;text-align:center;color:#52739a;text-decoration:underline;font-weight:700;padding:4px}.obs{height:45mm;border:1.5px solid #111;padding:5px;white-space:pre-wrap}.sign{height:30mm;border:1.5px solid #111;padding:5px;position:relative}.sign img{max-width:48%;max-height:22mm;display:block;margin:3mm auto 0}.signName{position:absolute;left:8px;bottom:5px}.note{font-size:8px;margin-top:4mm}.page2 .title{margin-bottom:5mm}
+      .continuation{margin-top:4mm}
+      @media print{body{print-color-adjust:exact;-webkit-print-color-adjust:exact}}
+    `+'</style></head><body><div class="page">'+
+      '<div class="title">FICHE DE CONTRÔLE ET D’ENTRETIEN MENSUEL DES TAXIS</div>'+
+      '<div class="infoTitle">INFORMATIONS GENERALES</div><div class="info">'+
+      '<div class="line">Date : <b>'+taxiPdfEscape(taxiPdfDate(date))+'</b></div><div class="line">Immatriculation : <b>'+taxiPdfEscape(immat)+'</b></div><div class="line">Kms : <b>'+taxiPdfEscape(kms)+'</b></div>'+
+      '<div class="wide line">Equipage : <b>'+taxiPdfEscape(equipage)+'</b></div></div>'+
+      '<div class="paperTitle">PAPIERS VEHICULE</div><div class="papers">'+
+      '<div class="paperRow"><span>Carnet métrologique du contrôle :</span><span>–</span></div><div class="paperRow"><span>Arreté des tarifs</span><span>–</span></div>'+
+      '<div class="paperRow"><span>Carte grise :</span><span>–</span></div><div class="paperRow"><span>Arrêté préfectoral :</span><span>–</span></div>'+
+      '<div class="paperRow"><span>Assurance :</span><span>–</span></div><div class="paperRow"><span>Carte Leclerc :</span><span>–</span></div>'+
+      '<div class="paperRow"><span>Constat :</span><span>–</span></div><div class="paperRow"><span>Contrôle technique :</span><span>–</span></div>'+
+      '<div class="paperRow"><span>Affichage du taux de CO2 :</span><span>–</span></div><div class="paperRow"><span>Plaquette des tarifs taxis:</span><span>–</span></div>'+
+      '<div class="paperRow"><span>Facturier :</span><span>–</span></div><div class="paperRow"><span>TPE CB</span><span>–</span></div></div>'+
+      '<div class="materialHeader">MATERIEL VEHICULE</div><table><tr class="head"><td class="item">Inventaire</td><td class="qty">Quantité</td><td>Présent</td><td>Manque</td><td class="red">Quantité<br>manquante</td></tr>'+rows+'</table>'+
+      '</div><div class="page page2"><div class="title">FICHE DE CONTRÔLE ET D’ENTRETIEN MENSUEL DES TAXIS</div>'+
+      '<div class="bottom"><div class="bottomTitle">OBSERVATIONS</div><div class="obs">'+taxiPdfEscape(obs)+'</div><div class="bottomTitle">SIGNATURES</div><div class="sign">Chauffeur : <b>'+taxiPdfEscape(equipage)+'</b>'+(sig?'<img src="'+sig+'" alt="Signature">':'')+'</div></div>'+
+      '</div></body></html>';
+  }
   window.genererPdfTaxi=function(){
     const detail=document.getElementById('checklistTaxiDetail');
     if(!detail) return;
-    window.print();
+    const html=taxiBuildPdfHtml();
+    const w=window.open('','_blank','width=900,height=1200');
+    if(!w){alert('Autorisez les fenêtres pop-up pour générer le PDF.');return;}
+    w.document.open();w.document.write(html);w.document.close();
+    setTimeout(function(){w.focus();w.print();},500);
   };
 })();
 </script>
