@@ -10240,9 +10240,9 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     html += '<div class="taxiInfoCard">';
     html += '<div class="taxiInfoTitle">Informations du contrôle</div>';
     html += '<div class="taxiInfoGrid">';
-    html += '<div class="taxiField"><label>Equipage :</label><input id="taxiEquipage" type="text" placeholder="Saisir l’équipage"></div>';
-    html += '<div class="taxiField"><label>Date :</label><input id="taxiDate" type="text" placeholder="Saisir la date"></div>';
-    html += '<div class="taxiField"><label>Immatriculation :</label><input id="taxiImmatriculation" type="text" value="'+esc(vehicle.split(' – ')[0] || '')+'" placeholder="Saisir l’immatriculation"></div>';
+    html += '<div class="taxiField"><label>Équipage :</label><div id="taxiEquipageList" class="taxiCrewList"><div style="color:#71879a;font-size:13px">Chargement des salariés…</div></div><input id="taxiEquipage" type="hidden"></div>';
+    html += '<div class="taxiField"><label>Date :</label><input id="taxiDate" type="date" value="'+new Date().toISOString().slice(0,10)+'"></div>';
+    html += '<div class="taxiField"><label>Immatriculation :</label><input id="taxiImmatriculation" type="text" value="'+esc(vehicle.split(' – ')[0] || '')+'" readonly></div>';
     html += '<div class="taxiField"><label>Kms :</label><input id="taxiKms" type="text" inputmode="numeric" placeholder="Saisir le kilométrage"></div>';
     html += '</div></div>';
 
@@ -10277,9 +10277,44 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     html += '<button type="button" class="taxiValidate" onclick="validerChecklistTaxi()">✓ TERMINER LE CONTRÔLE</button>';
     html += '<button type="button" class="taxiPdfBtn" onclick="genererPdfTaxi()">📄 GÉNÉRER LE PDF</button>';
     html += '</div>';
-    html += '<div class="taxiNotice">Les champs Equipage, Date, Immatriculation et Kms sont saisis manuellement dans l’application.</div>';
+    html += '<div class="taxiNotice">L’équipage est choisi parmi les salariés déjà enregistrés dans SaniStock. La date et l’immatriculation sont préremplies automatiquement.</div>';
     html += '</div>';
     return html;
+  }
+
+  function chargerEquipageTaxi(){
+    const box=document.getElementById('taxiEquipageList');
+    const hidden=document.getElementById('taxiEquipage');
+    if(!box || !hidden) return;
+    function afficher(noms){
+      noms=Array.isArray(noms)?noms.filter(Boolean):[];
+      if(!noms.length){
+        box.innerHTML='<div style="color:#71879a;font-size:13px">Aucun salarié disponible.</div>';
+        return;
+      }
+      box.innerHTML=noms.map(function(n,i){
+        const id='taxiCrew_'+i;
+        return '<label class="taxiCrewOption"><input type="checkbox" value="'+esc(n)+'" id="'+id+'"><span>'+esc(n)+'</span></label>';
+      }).join('');
+      box.querySelectorAll('input[type=checkbox]').forEach(function(cb){
+        cb.addEventListener('change',function(){
+          hidden.value=Array.from(box.querySelectorAll('input[type=checkbox]:checked')).map(function(x){return x.value}).join(' / ');
+        });
+      });
+    }
+    let noms=[];
+    try{noms=JSON.parse(localStorage.getItem('sanistock_cached_employee_names')||'[]')}catch(e){noms=[]}
+    afficher(noms);
+    if(navigator.onLine && typeof google!=='undefined' && google.script && google.script.run){
+      try{
+        google.script.run.withSuccessHandler(function(res){
+          if(Array.isArray(res) && res.length){
+            try{localStorage.setItem('sanistock_cached_employee_names',JSON.stringify(res));}catch(e){}
+            afficher(res);
+          }
+        }).withFailureHandler(function(){}).getSalaries();
+      }catch(e){}
+    }
   }
 
   window.ouvrirChecklistVehiculeFixe = function(v){
@@ -10292,6 +10327,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     if(!box) return;
     if(sub) sub.textContent='TAXI — contrôle du véhicule';
     box.innerHTML=taxiHtml(v);
+    chargerEquipageTaxi();
     const d=document.getElementById('checklistTaxiDetail');
     if(d) d.classList.add('show');
   };
@@ -10313,7 +10349,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     const immat=(document.getElementById('taxiImmatriculation')||{}).value||'';
     const kms=(document.getElementById('taxiKms')||{}).value||'';
     if(!equipage || !date || !immat || !kms){
-      alert('Merci de remplir Equipage, Date, Immatriculation et Kms.');
+      alert('Merci de sélectionner au moins un salarié, de vérifier la date et l’immatriculation, puis de saisir les Kms.');
       return;
     }
     const result=TAXI_ITEMS.map(function(item,i){
@@ -10333,5 +10369,12 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 })();
 </script>
 
+
+<style id="taxi-crew-fix">
+.taxiCrewList{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;max-height:150px;overflow:auto;padding:2px}
+.taxiCrewOption{display:flex;align-items:center;gap:8px;padding:9px 11px;border:1px solid #cbd8e4;border-radius:10px;background:#f8fbfd;cursor:pointer;font-size:14px;font-weight:700}
+.taxiCrewOption input{width:18px;height:18px;accent-color:#0757a0}
+#taxiImmatriculation[readonly]{background:#f1f5f8;font-weight:800;color:#263b50}
+</style>
 </body>
 </html>
