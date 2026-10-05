@@ -10202,7 +10202,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 .taxiChoice{display:flex;justify-content:center}
 .taxiChoice input{width:18px;height:18px}
 .taxiMissingQty{width:100%;box-sizing:border-box;padding:7px;border:1px solid #cbd8e4;border-radius:8px;text-align:center}
-.taxiMissingQty:disabled{background:#f1f5f8;color:#9aa8b4}
+.taxiMissingQty{background:#fff;color:#042349}
 .taxiActions{display:grid;gap:9px;margin-top:12px}
 .taxiValidate{width:100%;border:0;border-radius:13px;padding:14px;background:#15934b;color:#fff;font-weight:900;cursor:pointer}
 .taxiPdfBtn{width:100%;border:0;border-radius:13px;padding:13px;background:#0758a5;color:#fff;font-weight:900;cursor:pointer}
@@ -10257,7 +10257,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
         html += '<div class="taxiQty">'+esc(item.quantity)+'</div>';
         html += '<div class="taxiChoice"><input type="radio" name="'+id+'" value="present" onchange="toggleTaxiMissing('+i+',false)"></div>';
         html += '<div class="taxiChoice"><input type="radio" name="'+id+'" value="manque" onchange="toggleTaxiMissing('+i+',true)"></div>';
-        html += '<div><select id="taxiMissing'+i+'" class="taxiMissingQty" disabled><option value="">—</option>'+Array.from({length:(Number(item.quantity)>0?Number(item.quantity):10)},function(_,n){return '<option value="'+(n+1)+'">'+(n+1)+'</option>';}).join('')+'</select></div>';
+        html += '<div><input id="taxiMissing'+i+'" class="taxiMissingQty" type="number" min="0" step="1" inputmode="numeric" placeholder="Qté"></div>';
         html += '</div>';
       });
       html += '</div>';
@@ -10339,8 +10339,11 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
   window.toggleTaxiMissing=function(i,enabled){
     const q=document.getElementById('taxiMissing'+i);
     if(!q) return;
-    q.disabled=!enabled;
-    if(!enabled) q.value='';
+    if(!enabled){
+      q.value='';
+    }else{
+      q.focus();
+    }
   };
 
   window.validerChecklistTaxi=function(){
