@@ -10201,7 +10201,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 .taxiQty{text-align:center;font-weight:900}
 .taxiChoice{display:flex;justify-content:center}
 .taxiChoice input{width:18px;height:18px}
-.taxiMissingQty{width:100%;box-sizing:border-box;padding:7px;border:1px solid #cbd8e4;border-radius:8px;text-align:center}
+.taxiMissingQty{width:100%;box-sizing:border-box;padding:8px 5px;border:2px solid #0758a5;border-radius:8px;text-align:center;background:#fff!important;color:#042349!important;pointer-events:auto!important;cursor:text!important;position:relative;z-index:20;opacity:1!important;user-select:text!important;-webkit-user-select:text!important}
 .taxiMissingQty{background:#fff;color:#042349}
 .taxiActions{display:grid;gap:9px;margin-top:12px}
 .taxiValidate{width:100%;border:0;border-radius:13px;padding:14px;background:#15934b;color:#fff;font-weight:900;cursor:pointer}
@@ -10257,7 +10257,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
         html += '<div class="taxiQty">'+esc(item.quantity)+'</div>';
         html += '<div class="taxiChoice"><input type="radio" name="'+id+'" value="present" onchange="toggleTaxiMissing('+i+',false)"></div>';
         html += '<div class="taxiChoice"><input type="radio" name="'+id+'" value="manque" onchange="toggleTaxiMissing('+i+',true)"></div>';
-        html += '<div><input id="taxiMissing'+i+'" class="taxiMissingQty" type="number" min="0" step="1" inputmode="numeric" placeholder="Qté"></div>';
+        html += '<div><input id="taxiMissing'+i+'" class="taxiMissingQty" type="text" inputmode="numeric" autocomplete="off" aria-label="Quantité manquante" placeholder="Écrire la quantité" tabindex="0"></div>';
         html += '</div>';
       });
       html += '</div>';
@@ -10339,10 +10339,15 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
   window.toggleTaxiMissing=function(i,enabled){
     const q=document.getElementById('taxiMissing'+i);
     if(!q) return;
-    if(!enabled){
-      q.value='';
+    q.disabled=false;
+    q.readOnly=false;
+    q.removeAttribute('disabled');
+    q.style.pointerEvents='auto';
+    q.style.opacity='1';
+    if(enabled){
+      setTimeout(function(){ q.focus(); },20);
     }else{
-      q.focus();
+      q.value='';
     }
   };
 
@@ -10401,6 +10406,32 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
       return r;
     };
   }
+})();
+</script>
+
+
+<script id="sanistock-taxi-missing-editable">
+(function(){
+  function rendreChampsManquantsEditables(){
+    document.querySelectorAll('#checklistTaxiDetail .taxiMissingQty').forEach(function(q){
+      q.disabled=false;
+      q.readOnly=false;
+      q.removeAttribute('disabled');
+      q.removeAttribute('readonly');
+      q.style.pointerEvents='auto';
+      q.style.opacity='1';
+      q.tabIndex=0;
+      q.oninput=function(){
+        this.value=this.value.replace(/[^\d]/g,'');
+      };
+    });
+  }
+  document.addEventListener('click',function(e){
+    if(e.target && e.target.closest && e.target.closest('#checklistTaxiDetail')){
+      setTimeout(rendreChampsManquantsEditables,20);
+    }
+  });
+  window.addEventListener('load',rendreChampsManquantsEditables);
 })();
 </script>
 
