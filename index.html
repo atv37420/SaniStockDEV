@@ -10273,8 +10273,13 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     html += '</div>';
 
     html += '<div class="taxiSection">';
-    html += '<div class="taxiSectionTitle">Signature</div>';
-    html += '<input id="taxiSignature" type="text" style="width:100%;box-sizing:border-box;padding:11px;border:1px solid #cbd8e4;border-radius:10px" placeholder="Chauffeur">';
+    html += '<div class="taxiSectionTitle">Signature du chauffeur</div>';
+    html += '<div class="taxiSignatureBox">';
+    html += '<div class="taxiSignatureHint">✍️ Signez dans le cadre ci-dessous avec le doigt ou le stylet.</div>';
+    html += '<canvas id="taxiSignatureCanvas" class="taxiSignatureCanvas" width="900" height="260"></canvas>';
+    html += '<div class="taxiSignatureActions"><button type="button" class="taxiSignatureClear" onclick="effacerSignatureTaxi()">🗑️ Effacer la signature</button></div>';
+    html += '<input id="taxiSignature" type="hidden" value="">';
+    html += '</div>';
     html += '</div>';
 
     html += '<div class="taxiActions">';
@@ -10332,6 +10337,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     chargerEquipageTaxi();
     const d=document.getElementById('checklistTaxiDetail');
     if(d) d.classList.add('show');
+    setTimeout(function(){ initSignatureTaxi(); }, 60);
   };
 
   window.fermerChecklistTaxi=function(){
@@ -10351,6 +10357,74 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     }else{
       q.value='';
     }
+  };
+
+
+  window.initSignatureTaxi=function(){
+    const canvas=document.getElementById('taxiSignatureCanvas');
+    const hidden=document.getElementById('taxiSignature');
+    if(!canvas || !hidden) return;
+    if(canvas.dataset.ready==='1') return;
+    canvas.dataset.ready='1';
+
+    const ctx=canvas.getContext('2d');
+    const ratio=window.devicePixelRatio||1;
+    const rect=canvas.getBoundingClientRect();
+    const cssW=rect.width||900, cssH=rect.height||260;
+    canvas.width=Math.round(cssW*ratio);
+    canvas.height=Math.round(cssH*ratio);
+    ctx.scale(ratio,ratio);
+    ctx.lineWidth=2.5;
+    ctx.lineCap='round';
+    ctx.lineJoin='round';
+    ctx.strokeStyle='#111827';
+
+    let drawing=false, hasInk=false;
+
+    function pos(e){
+      const r=canvas.getBoundingClientRect();
+      const t=e.touches&&e.touches[0];
+      return {
+        x:(t?t.clientX:e.clientX)-r.left,
+        y:(t?t.clientY:e.clientY)-r.top
+      };
+    }
+    function start(e){
+      e.preventDefault();
+      drawing=true;
+      const p=pos(e);
+      ctx.beginPath();
+      ctx.moveTo(p.x,p.y);
+    }
+    function move(e){
+      if(!drawing) return;
+      e.preventDefault();
+      const p=pos(e);
+      ctx.lineTo(p.x,p.y);
+      ctx.stroke();
+      hasInk=true;
+    }
+    function end(e){
+      if(!drawing) return;
+      e.preventDefault();
+      drawing=false;
+      hidden.value=hasInk?canvas.toDataURL('image/png'):'';
+    }
+
+    canvas.addEventListener('pointerdown',start);
+    canvas.addEventListener('pointermove',move);
+    canvas.addEventListener('pointerup',end);
+    canvas.addEventListener('pointercancel',end);
+    canvas.addEventListener('pointerleave',end);
+  };
+
+  window.effacerSignatureTaxi=function(){
+    const canvas=document.getElementById('taxiSignatureCanvas');
+    const hidden=document.getElementById('taxiSignature');
+    if(!canvas) return;
+    const ctx=canvas.getContext('2d');
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    if(hidden) hidden.value='';
   };
 
   window.validerChecklistTaxi=function(){
@@ -10379,6 +10453,19 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 })();
 </script>
 
+
+
+<style id="taxi-signature-style">
+.taxiSignatureBox{width:100%;box-sizing:border-box}
+.taxiSignatureHint{font-size:13px;color:#64748b;margin:0 0 8px}
+.taxiSignatureCanvas{display:block;width:100%;height:180px;box-sizing:border-box;background:#fff;border:2px solid #94a3b8;border-radius:10px;touch-action:none;cursor:crosshair}
+.taxiSignatureActions{display:flex;justify-content:flex-end;margin-top:8px}
+.taxiSignatureClear{border:1px solid #cbd5e1;background:#f8fafc;color:#334155;border-radius:8px;padding:8px 12px;font-weight:700;cursor:pointer}
+@media print{
+  .taxiSignatureCanvas{border:1px solid #64748b}
+  .taxiSignatureHint,.taxiSignatureClear{display:none!important}
+}
+</style>
 
 <style id="taxi-crew-fix">
 .taxiCrewList{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;max-height:150px;overflow:auto;padding:2px}
