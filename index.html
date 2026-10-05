@@ -10376,5 +10376,30 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 .taxiCrewOption input{width:18px;height:18px;accent-color:#0757a0}
 #taxiImmatriculation[readonly]{background:#f1f5f8;font-weight:800;color:#263b50}
 </style>
+
+<script id="sanistock-taxi-uncheck-all">
+(function(){
+  function uncheckTaxi(){
+    var root=document.getElementById('checklistContent');
+    if(!root) return;
+    if(!/TAXI|🚕/i.test(root.textContent||'')) return;
+    root.querySelectorAll('input[type="checkbox"], input[type="radio"]').forEach(function(el){
+      el.checked=false;
+      el.removeAttribute('checked');
+    });
+  }
+  window.addEventListener('load', function(){ setTimeout(uncheckTaxi, 50); });
+  var oldOpen=window.ouvrirChecklistVehiculeFixe;
+  if(typeof oldOpen==='function'){
+    window.ouvrirChecklistVehiculeFixe=function(v){
+      var r=oldOpen.apply(this,arguments);
+      setTimeout(uncheckTaxi,50);
+      setTimeout(uncheckTaxi,250);
+      return r;
+    };
+  }
+})();
+</script>
+
 </body>
 </html>
