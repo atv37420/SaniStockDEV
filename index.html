@@ -1908,6 +1908,10 @@ button.settingsAction.secondary:hover,
 .homeConnCancel{background:#dce7ef;color:#042349;}
 </style>
 </style>
+<style id="taxi-chauffeur-auto-style">
+.taxiChauffeurReconnu{display:block;padding:11px 12px;border:1px solid #b8d7ee;border-radius:10px;background:#eef7ff;color:#042349;font-size:14px;font-weight:700}
+.taxiChauffeurNonReconnu{display:block;padding:11px 12px;border:1px solid #f1c6c6;border-radius:10px;background:#fff5f5;color:#9b1c1c;font-size:13px;font-weight:700}
+</style>
 </head>
 <body>
 
@@ -10286,21 +10290,19 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     const box=document.getElementById('taxiEquipageList');
     const hidden=document.getElementById('taxiEquipage');
     if(!box || !hidden) return;
+    function nomConnecte(){
+      try{return String(localStorage.getItem('sanistock_employee_name')||'').trim();}catch(e){return '';}
+    }
     function afficher(noms){
       noms=Array.isArray(noms)?noms.filter(Boolean):[];
-      if(!noms.length){
-        box.innerHTML='<div style="color:#71879a;font-size:13px">Aucun salarié disponible.</div>';
+      const nom=nomConnecte();
+      if(nom){
+        hidden.value=nom;
+        box.innerHTML='<div class="taxiChauffeurReconnu">👤 <strong>Chauffeur reconnu :</strong> '+esc(nom)+'</div>';
         return;
       }
-      box.innerHTML=noms.map(function(n,i){
-        const id='taxiCrew_'+i;
-        return '<label class="taxiCrewOption"><input type="checkbox" value="'+esc(n)+'" id="'+id+'"><span>'+esc(n)+'</span></label>';
-      }).join('');
-      box.querySelectorAll('input[type=checkbox]').forEach(function(cb){
-        cb.addEventListener('change',function(){
-          hidden.value=Array.from(box.querySelectorAll('input[type=checkbox]:checked')).map(function(x){return x.value}).join(' / ');
-        });
-      });
+      hidden.value='';
+      box.innerHTML='<div class="taxiChauffeurNonReconnu">⚠️ Aucun chauffeur connecté. Reconnectez-vous à SaniStock.</div>';
     }
     let noms=[];
     try{noms=JSON.parse(localStorage.getItem('sanistock_cached_employee_names')||'[]')}catch(e){noms=[]}
@@ -10310,10 +10312,10 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
         google.script.run.withSuccessHandler(function(res){
           if(Array.isArray(res) && res.length){
             try{localStorage.setItem('sanistock_cached_employee_names',JSON.stringify(res));}catch(e){}
-            afficher(res);
           }
-        }).withFailureHandler(function(){}).getSalaries();
-      }catch(e){}
+          afficher(Array.isArray(res)?res:noms);
+        }).withFailureHandler(function(){afficher(noms);}).getSalaries();
+      }catch(e){afficher(noms);}
     }
   }
 
@@ -10438,59 +10440,26 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 
 <script id="sanistock-taxi-chauffeur-auto">
 (function(){
-  function nomSalarieConnecte(){
-    try{
-      return String(localStorage.getItem('sanistock_employee_name')||'').trim();
-    }catch(e){ return ''; }
-  }
-
   function appliquerChauffeurAutomatique(){
     var root=document.getElementById('checklistTaxiDetail');
     if(!root) return;
-
-    var nom=nomSalarieConnecte();
-    var input=root.querySelector('#taxiEquipage, input[name="taxiEquipage"]');
-    if(input){
-      input.value=nom;
-      input.readOnly=true;
-      input.setAttribute('readonly','readonly');
-      input.placeholder=nom ? '' : 'Salarié non reconnu';
-    }
-
-    var select=root.querySelector('#taxiEquipageSelect, select[name="taxiEquipage"]');
-    if(select && nom){
-      var trouve=false;
-      Array.from(select.options).forEach(function(o){
-        if(String(o.value).trim()===nom){
-          select.value=o.value;
-          trouve=true;
-        }
-      });
-      if(trouve){
-        select.disabled=true;
-        select.setAttribute('aria-label','Chauffeur connecté');
-      }
-    }
-
-    var chauffeur=root.querySelector('.taxiChauffeurAuto');
-    if(chauffeur){
-      chauffeur.textContent=nom ? '👤 '+nom : '⚠️ Chauffeur non reconnu';
+    var nom='';
+    try{nom=String(localStorage.getItem('sanistock_employee_name')||'').trim();}catch(e){}
+    var input=root.querySelector('#taxiEquipage');
+    var box=root.querySelector('#taxiEquipageList');
+    if(input){ input.value=nom; input.setAttribute('data-chauffeur-auto','1'); }
+    if(box){
+      box.innerHTML=nom
+        ? '<div class="taxiChauffeurReconnu">👤 <strong>Chauffeur reconnu :</strong> '+String(nom).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];})+'</div>'
+        : '<div class="taxiChauffeurNonReconnu">⚠️ Aucun chauffeur connecté. Reconnectez-vous à SaniStock.</div>';
     }
   }
-
-  window.sanistockAppliquerChauffeurTaxi=appliquerChauffeurAutomatique;
-
+  window.appliquerChauffeurAutomatique=appliquerChauffeurAutomatique;
   document.addEventListener('click',function(e){
-    if(e.target && e.target.closest && e.target.closest('[data-check-veh], #checklistContent')){
-      setTimeout(appliquerChauffeurAutomatique,80);
-      setTimeout(appliquerChauffeurAutomatique,400);
-    }
+    if(e.target.closest && e.target.closest('#checklistTaxiDetail')) setTimeout(appliquerChauffeurAutomatique,30);
   });
-
-  window.addEventListener('load',function(){
-    setTimeout(appliquerChauffeurAutomatique,300);
-    setTimeout(appliquerChauffeurAutomatique,1200);
-  });
+  window.addEventListener('storage',appliquerChauffeurAutomatique);
+  window.addEventListener('load',function(){setTimeout(appliquerChauffeurAutomatique,100);});
 })();
 </script>
 
