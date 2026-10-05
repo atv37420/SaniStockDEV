@@ -10254,14 +10254,15 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
       html += '<div class="taxiSection">';
       html += '<div class="taxiSectionTitle">'+esc(cat)+'</div>';
       html += '<div class="taxiChecklistHead"><div>Inventaire</div><div>Quantité</div><div>Présent</div><div>Manque</div><div>Quantité manquante</div></div>';
-      groups[cat].forEach(function(item,i){
-        const id='taxiItem'+i;
-        html += '<div class="taxiChecklistRow" data-taxi-index="'+i+'">';
+      groups[cat].forEach(function(item){
+        const globalIndex=TAXI_ITEMS.indexOf(item);
+        const id='taxiItem'+globalIndex;
+        html += '<div class="taxiChecklistRow" data-taxi-index="'+globalIndex+'">';
         html += '<div>'+esc(item.name)+'</div>';
         html += '<div class="taxiQty">'+esc(item.quantity)+'</div>';
-        html += '<div class="taxiChoice"><input type="radio" name="'+id+'" value="present" onchange="toggleTaxiMissing('+i+',false)"></div>';
-        html += '<div class="taxiChoice"><input type="radio" name="'+id+'" value="manque" onchange="toggleTaxiMissing('+i+',true)"></div>';
-        html += '<div><input id="taxiMissing'+i+'" class="taxiMissingQty" type="text" inputmode="numeric" autocomplete="off" aria-label="Quantité manquante" placeholder="Écrire la quantité" tabindex="0"></div>';
+        html += '<div class="taxiChoice"><input type="radio" name="'+id+'" value="present" onchange="toggleTaxiMissing('+globalIndex+',false)"></div>';
+        html += '<div class="taxiChoice"><input type="radio" name="'+id+'" value="manque" onchange="toggleTaxiMissing('+globalIndex+',true)"></div>';
+        html += '<div><input id="taxiMissing'+globalIndex+'" class="taxiMissingQty" type="text" inputmode="numeric" autocomplete="off" aria-label="Quantité manquante" placeholder="Écrire la quantité" tabindex="0"></div>';
         html += '</div>';
       });
       html += '</div>';
