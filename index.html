@@ -10255,7 +10255,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
         html += '<div class="taxiChecklistRow" data-taxi-index="'+i+'">';
         html += '<div>'+esc(item.name)+'</div>';
         html += '<div class="taxiQty">'+esc(item.quantity)+'</div>';
-        html += '<div class="taxiChoice"><input type="radio" name="'+id+'" value="present" checked onchange="toggleTaxiMissing('+i+',false)"></div>';
+        html += '<div class="taxiChoice"><input type="radio" name="'+id+'" value="present" onchange="toggleTaxiMissing('+i+',false)"></div>';
         html += '<div class="taxiChoice"><input type="radio" name="'+id+'" value="manque" onchange="toggleTaxiMissing('+i+',true)"></div>';
         html += '<div><input id="taxiMissing'+i+'" class="taxiMissingQty" type="number" min="0" step="1" placeholder="—" disabled></div>';
         html += '</div>';
