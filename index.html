@@ -10572,10 +10572,19 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
   function getMissing(i){var el=document.getElementById('taxiMissing'+i);return el?String(el.value||'').trim():'';}
   function drawCheck(page,x,y,sz,color){page.drawLine({start:{x:x-sz*.5,y:y},end:{x:x-sz*.15,y:y-sz*.45},thickness:1.2,color:color});page.drawLine({start:{x:x-sz*.15,y:y-sz*.45},end:{x:x+sz*.55,y:y+sz*.45},thickness:1.2,color:color});}
   function drawX(page,x,y,sz,color){page.drawLine({start:{x:x-sz*.42,y:y-sz*.42},end:{x:x+sz*.42,y:y+sz*.42},thickness:1.1,color:color});page.drawLine({start:{x:x-sz*.42,y:y+sz*.42},end:{x:x+sz*.42,y:y-sz*.42},thickness:1.1,color:color});}
-  function cover(page,x,y,w,h,white){page.drawRectangle({x:x,y:y,width:w,height:h,color:white,borderWidth:0});}
+  function cover(page,x,y,w,h,fill){page.drawRectangle({x:x,y:y,width:w,height:h,color:fill||PDFLib.rgb(1,1,1),borderWidth:0});}
   function drawValue(page,font,text,x,y,maxWidth,size,color){if(!text)return;var t=String(text);while(t.length>0&&font.widthOfTextAtSize(t,size)>maxWidth)t=t.slice(0,-1);page.drawText(t,{x:x,y:y,size:size,font:font,color:color});}
   function wrapText(font,text,size,maxWidth){var words=String(text||'').split(/\s+/),lines=[],line='';words.forEach(function(w){var test=line?line+' '+w:w;if(font.widthOfTextAtSize(test,size)<=maxWidth)line=test;else{if(line)lines.push(line);line=w;}});if(line)lines.push(line);return lines;}
 
+  function taxiPdfRowFill(category,ordinal,PDFLib){
+    if(category==='Sécurité' || category==='Valise noir'){
+      return ordinal%2 ? PDFLib.rgb(191/255,191/255,191/255) : PDFLib.rgb(1,1,1);
+    }
+    if(category==='Trousse de secours' || category==='Désinfection'){
+      return ordinal%2 ? PDFLib.rgb(217/255,217/255,217/255) : PDFLib.rgb(1,1,1);
+    }
+    return PDFLib.rgb(217/255,217/255,217/255);
+  }
   async function buildExactPdf(){
     var PDFLib=await loadPdfLib();
     var doc=await PDFLib.PDFDocument.load(b64ToUint8(TAXI_TEMPLATE_B64));
@@ -10591,26 +10600,71 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     var sig=String(document.getElementById('taxiSignature')?.value||'').trim();
 
     // Informations générales : remplacement des pointillés par les réponses.
-    cover(p1,78,104,103,15,white); drawValue(p1,bold,date,81,106,98,9,black);
-    cover(p1,294,104,64,15,white); drawValue(p1,bold,immat,297,106,59,9,black);
-    cover(p1,401,104,66,15,white); drawValue(p1,bold,kms,405,106,60,9,black);
-    cover(p1,98,117,340,15,white); drawValue(p1,bold,equip,100,119,176,9,black);
+    cover(p1,78,104,103,15,PDFLib.rgb(217/255,217/255,217/255)); drawValue(p1,bold,date,81,106,98,9,black);
+    cover(p1,294,104,64,15,PDFLib.rgb(217/255,217/255,217/255)); drawValue(p1,bold,immat,297,106,59,9,black);
+    cover(p1,401,104,66,15,PDFLib.rgb(217/255,217/255,217/255)); drawValue(p1,bold,kms,405,106,60,9,black);
+    cover(p1,98,117,340,15,PDFLib.rgb(217/255,217/255,217/255)); drawValue(p1,bold,equip,100,119,176,9,black);
 
     // Papiers : une seule case par document, exactement comme la fiche d'origine.
     var left=[0,2,4,6,8,10],right=[1,3,5,7,9,11];
-    left.forEach(function(idx,r){var st=getState(idx);if(st){cover(p1,244,175+r*13.2,13,12,white);st==='present'?drawCheck(p1,250,181+r*13.2,10,black):drawX(p1,250,181+r*13.2,10,black);}});
-    right.forEach(function(idx,r){var st=getState(idx);if(st){cover(p1,446,175+r*13.2,13,12,white);st==='present'?drawCheck(p1,452,181+r*13.2,10,black):drawX(p1,452,181+r*13.2,10,black);}});
+    left.forEach(function(idx,r){var st=getState(idx);if(st){cover(p1,242.5,172.5+r*13.25,16,16,PDFLib.rgb(217/255,217/255,217/255));st==='present'?drawCheck(p1,249.5,181+r*13.2,8,black):drawX(p1,249.5,181+r*13.2,8,black);}});
+    right.forEach(function(idx,r){var st=getState(idx);if(st){cover(p1,445,172.5+r*13.25,16,16,PDFLib.rgb(217/255,217/255,217/255));st==='present'?drawCheck(p1,452,181+r*13.2,8,black):drawX(p1,452,181+r*13.2,8,black);}});
 
     // Tableau matériel, coordonnées calées sur la vraie fiche Taxi.
-    var idxs=[12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33];
-    var ys=[332,349.3,366.6,383.9,401.1,418.4,477.7,494.9,511.9,529.2,546.2,563.6,580.8,598.2,656.9,674.2,691.5,708.8,726.1,743.3,760.6,777.9];
-    idxs.forEach(function(idx,j){var st=getState(idx),miss=getMissing(idx),y=ys[j];if(st){if(st==='present'){cover(p1,317,y-6,12,13,white);drawCheck(p1,323,y,10,black);}else{cover(p1,387,y-6,12,13,white);drawX(p1,393,y,10,black);}}if(miss){cover(p1,427,y-6,50,13,white);drawValue(p1,bold,miss,430,y-3,47,8,red);}});
+    // Sécurité : 6 lignes, mêmes colonnes que la fiche originale.
+    var safeYs=[332,349.3,366.6,383.9,401.1,418.4];
+    safeYs.forEach(function(y,j){
+      var idx=12+j,st=getState(idx),miss=getMissing(idx),fill=taxiPdfRowFill('Sécurité',j,PDFLib);
+      if(st==='present'){cover(p1,317,y-7,13,15,fill);drawCheck(p1,323,y,8.5,black);}
+      else if(st==='manque'){cover(p1,387,y-7,13,15,fill);drawX(p1,393,y,8.5,black);}
+      if(miss){cover(p1,420,y-7,51,15,fill);drawValue(p1,bold,miss,430,y-3,40,8,red);}
+    });
 
-    // Page 2 : désinfection, observations et signature.
-    [34,35,36].forEach(function(idx,k){var st=getState(idx),miss=getMissing(idx),y=[100,113,126][k];if(st){if(st==='present'){cover(p2,317,y-6,12,13,white);drawCheck(p2,323,y,10,black);}else{cover(p2,387,y-6,12,13,white);drawX(p2,393,y,10,black);}}if(miss){cover(p2,427,y-6,50,13,white);drawValue(p2,bold,miss,430,y-3,47,8,red);}});
-    if(obs){var lines=wrapText(font,obs,8,410),yy=224;lines.slice(0,8).forEach(function(line){p2.drawText(line,{x:56,y:yy,size:8,font:font,color:black});yy-=11;});}
-    if(equip){cover(p2,105,244,120,20,white);drawValue(p2,font,equip,110,250,110,9,black);}
-    if(sig&&sig.indexOf('data:image/')===0){try{var png=await doc.embedPng(sig);p2.drawImage(png,{x:125,y:278,width:160,height:58});}catch(e){console.warn('Signature PDF',e);}}
+    // Trousse de secours : les colonnes sont légèrement décalées dans le modèle original.
+    var trYs=[477.7,494.9,511.9,529.2,546.2,563.6,580.8,598.2];
+    trYs.forEach(function(y,j){
+      var idx=18+j,st=getState(idx),miss=getMissing(idx),fill=taxiPdfRowFill('Trousse de secours',j,PDFLib);
+      if(st==='present'){cover(p1,277,y-7,14,15,fill);drawCheck(p1,284,y,8.5,black);}
+      else if(st==='manque'){cover(p1,363,y-7,14,15,fill);drawX(p1,370,y,8.5,black);}
+      if(miss){cover(p1,417,y-7,54,15,fill);drawValue(p1,bold,miss,429,y-3,41,8,red);}
+    });
+
+    // Valise noir : mêmes colonnes que Sécurité.
+    var valYs=[656.9,674.2,691.5,708.8,726.1,743.3,760.6,777.9];
+    valYs.forEach(function(y,j){
+      var idx=26+j,st=getState(idx),miss=getMissing(idx),fill=taxiPdfRowFill('Valise noir',j,PDFLib);
+      if(st==='present'){cover(p1,317,y-7,13,15,fill);drawCheck(p1,323,y,8.5,black);}
+      else if(st==='manque'){cover(p1,387,y-7,13,15,fill);drawX(p1,393,y,8.5,black);}
+      if(miss){cover(p1,420,y-7,51,15,fill);drawValue(p1,bold,miss,430,y-3,40,8,red);}
+    });
+
+    // Page 2 : désinfection, observations et signature, directement dans les zones du modèle.
+    [100,113,126].forEach(function(y,k){
+      var idx=34+k,st=getState(idx),miss=getMissing(idx),fill=taxiPdfRowFill('Désinfection',k,PDFLib);
+      if(st==='present'){cover(p2,317,y-7,13,15,fill);drawCheck(p2,323,y,8.5,black);}
+      else if(st==='manque'){cover(p2,387,y-7,13,15,fill);drawX(p2,393,y,8.5,black);}
+      if(miss){cover(p2,420,y-7,51,15,fill);drawValue(p2,bold,miss,430,y-3,40,8,red);}
+    });
+
+    if(obs){
+      var lines=wrapText(font,obs,8,445),yy=168;
+      lines.slice(0,5).forEach(function(line){
+        p2.drawText(line,{x:57,y:yy,size:8,font:font,color:black});
+        yy+=11;
+      });
+    }
+
+    if(equip){
+      cover(p2,150,245,175,18,white);
+      drawValue(p2,bold,equip,154,249,168,9,black);
+    }
+
+    if(sig&&sig.indexOf('data:image/')===0){
+      try{
+        var png=await doc.embedPng(sig);
+        p2.drawImage(png,{x:205,y:264,width:175,height:42});
+      }catch(e){console.warn('Signature PDF',e);}
+    }
 
     var bytes=await doc.save();
     return {blob:new Blob([bytes],{type:'application/pdf'}),filename:'Check-list Taxi - '+(immat||'sans-immatriculation')+' - '+(date||'date').replaceAll('/','-')+'.pdf'};
@@ -10637,6 +10691,58 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 
 
 
+<script id="sanistock-taxi-pdf-final-buttons">
+(function(){
+  window.genererPdfTaxi=async function(){
+    var btn=document.querySelector('.taxiPdfBtn'), old=btn&&btn.textContent;
+    if(btn){btn.disabled=true;btn.textContent='⏳ GÉNÉRATION DU PDF...';}
+    try{
+      if(typeof window.saniStockGenererTaxiPdfExact!=='function') throw new Error('Générateur PDF exact indisponible');
+      var pdf=await window.saniStockGenererTaxiPdfExact();
+      var url=URL.createObjectURL(pdf.blob);
+      var a=document.createElement('a');
+      a.href=url; a.download=pdf.filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){URL.revokeObjectURL(url);},15000);
+    }catch(e){
+      console.error(e);
+      alert('❌ Impossible de générer le PDF : '+(e&&e.message?e.message:e));
+    }finally{
+      if(btn){btn.disabled=false;btn.textContent=old||'📄 GÉNÉRER LE PDF';}
+    }
+  };
+
+  window.envoyerMailTaxi=async function(){
+    var btn=document.querySelector('.taxiMailBtn'), old=btn&&btn.textContent;
+    if(btn){btn.disabled=true;btn.textContent='⏳ PRÉPARATION DU PDF...';}
+    try{
+      if(typeof window.saniStockGenererTaxiPdfExact!=='function') throw new Error('Générateur PDF exact indisponible');
+      var pdf=await window.saniStockGenererTaxiPdfExact();
+      var file=new File([pdf.blob],pdf.filename,{type:'application/pdf'});
+      var dest='hognonlewis@gmail.com';
+      var immat=document.getElementById('taxiImmatriculation')?.value||'';
+      var date=dateFR(document.getElementById('taxiDate')?.value||'');
+      var subject='Check-list Taxi - '+immat+' - '+date;
+      var body='Bonjour,\n\nVeuillez trouver ci-joint la fiche de contrôle et d’entretien mensuel du taxi.\n\nCordialement,\nSaniStock';
+      if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+        await navigator.share({files:[file],title:subject,text:body});
+      }else{
+        var url=URL.createObjectURL(pdf.blob);
+        var a=document.createElement('a');
+        a.href=url; a.download=pdf.filename;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function(){URL.revokeObjectURL(url);},15000);
+        window.location.href='mailto:'+dest+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body+'\n\nLe PDF exact a été téléchargé : '+pdf.filename+'\nAjoutez-le en pièce jointe avant l’envoi.');
+      }
+    }catch(e){
+      console.error(e);
+      alert('❌ Impossible de préparer le PDF pour le mail : '+(e&&e.message?e.message:e));
+    }finally{
+      if(btn){btn.disabled=false;btn.textContent=old||'📧 ENVOYER PAR MAIL';}
+    }
+  };
+})();
+</script>
 </body></html>';
   }
   async function taxiChargerHtml2Pdf(){
