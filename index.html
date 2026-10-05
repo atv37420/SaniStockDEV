@@ -10474,7 +10474,12 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     const obs=document.getElementById('taxiObservations')?.value||'';
     const sig=document.getElementById('taxiSignature')?.value||'';
     let rows=''; let current='';
-    TAXI_ITEMS.forEach(function(item,i){
+    // Le bloc PAPIERS VEHICULE est volontairement généré une seule fois,
+    // après les autres catégories, afin d'éviter le doublon du premier rectangle.
+    const pdfItems = TAXI_ITEMS.filter(function(item){ return item.category !== 'PAPIERS VEHICULE'; })
+      .concat(TAXI_ITEMS.filter(function(item){ return item.category === 'PAPIERS VEHICULE'; }));
+    pdfItems.forEach(function(item){
+      const i=TAXI_ITEMS.indexOf(item);
       if(item.category!==current){
         current=item.category;
         rows += '<tr class="section '+taxiSectionClass(current)+'"><td colspan="5">'+taxiPdfEscape(current)+'</td></tr>';
@@ -10507,13 +10512,6 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
       '<div class="infoTitle">INFORMATIONS GENERALES</div><div class="info">'+
       '<div class="line">Date : <b>'+taxiPdfEscape(taxiPdfDate(date))+'</b></div><div class="line">Immatriculation : <b>'+taxiPdfEscape(immat)+'</b></div><div class="line">Kms : <b>'+taxiPdfEscape(kms)+'</b></div>'+
       '<div class="wide line">Equipage : <b>'+taxiPdfEscape(equipage)+'</b></div></div>'+
-      '<div class="paperTitle">PAPIERS VEHICULE</div><div class="papers">'+
-      '<div class="paperRow"><span>Carnet métrologique du contrôle :</span><span>–</span></div><div class="paperRow"><span>Arreté des tarifs</span><span>–</span></div>'+
-      '<div class="paperRow"><span>Carte grise :</span><span>–</span></div><div class="paperRow"><span>Arrêté préfectoral :</span><span>–</span></div>'+
-      '<div class="paperRow"><span>Assurance :</span><span>–</span></div><div class="paperRow"><span>Carte Leclerc :</span><span>–</span></div>'+
-      '<div class="paperRow"><span>Constat :</span><span>–</span></div><div class="paperRow"><span>Contrôle technique :</span><span>–</span></div>'+
-      '<div class="paperRow"><span>Affichage du taux de CO2 :</span><span>–</span></div><div class="paperRow"><span>Plaquette des tarifs taxis:</span><span>–</span></div>'+
-      '<div class="paperRow"><span>Facturier :</span><span>–</span></div><div class="paperRow"><span>TPE CB</span><span>–</span></div></div>'+
       '<div class="materialHeader">MATERIEL VEHICULE</div><table><tr class="head"><td class="item">Inventaire</td><td class="qty">Quantité</td><td>Présent</td><td>Manque</td><td class="red">Quantité<br>manquante</td></tr>'+rows+'</table>'+
       '</div><div class="page page2"><div class="title">FICHE DE CONTRÔLE ET D’ENTRETIEN MENSUEL DES TAXIS</div>'+
       '<div class="bottom"><div class="bottomTitle">OBSERVATIONS</div><div class="obs">'+taxiPdfEscape(obs)+'</div><div class="bottomTitle">SIGNATURES</div><div class="sign">Chauffeur : <b>'+taxiPdfEscape(equipage)+'</b>'+(sig?'<img src="'+sig+'" alt="Signature">':'')+'</div></div>'+
