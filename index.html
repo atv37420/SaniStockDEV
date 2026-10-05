@@ -10184,5 +10184,154 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
   visibility:hidden !important;
 }
 </style>
+
+<style id="sanistock-checklist-taxi-style">
+#checklistTaxiDetail{display:none;padding-bottom:25px}
+#checklistTaxiDetail.show{display:block}
+.taxiInfoCard,.taxiSection{background:#fff;border-radius:18px;box-shadow:0 7px 22px rgba(4,35,73,.10);padding:14px;margin:0 0 12px}
+.taxiInfoTitle{font-size:16px;font-weight:900;color:#042349;margin-bottom:10px}
+.taxiInfoGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.taxiField label{display:block;font-size:10px;font-weight:900;color:#042349;margin-bottom:5px}
+.taxiField input{width:100%;box-sizing:border-box;padding:11px;border:1px solid #cbd8e4;border-radius:10px;font:inherit;background:#fff;color:#042349}
+.taxiSectionTitle{font-size:15px;font-weight:900;color:#042349;margin-bottom:9px;padding-bottom:7px;border-bottom:2px solid #edf3f7}
+.taxiChecklistHead,.taxiChecklistRow{display:grid;grid-template-columns:minmax(0,1fr) 70px 75px 70px 95px;gap:7px;align-items:center}
+.taxiChecklistHead{font-size:9px;font-weight:900;color:#60778c;text-align:center;margin-bottom:5px}
+.taxiChecklistHead div:first-child{text-align:left}
+.taxiChecklistRow{padding:9px 0;border-top:1px solid #e8eef3;font-size:11px;color:#042349}
+.taxiQty{text-align:center;font-weight:900}
+.taxiChoice{display:flex;justify-content:center}
+.taxiChoice input{width:18px;height:18px}
+.taxiMissingQty{width:100%;box-sizing:border-box;padding:7px;border:1px solid #cbd8e4;border-radius:8px;text-align:center}
+.taxiMissingQty:disabled{background:#f1f5f8;color:#9aa8b4}
+.taxiActions{display:grid;gap:9px;margin-top:12px}
+.taxiValidate{width:100%;border:0;border-radius:13px;padding:14px;background:#15934b;color:#fff;font-weight:900;cursor:pointer}
+.taxiPdfBtn{width:100%;border:0;border-radius:13px;padding:13px;background:#0758a5;color:#fff;font-weight:900;cursor:pointer}
+.taxiNotice{font-size:10px;color:#60778c;line-height:1.4;margin-top:7px}
+@media(max-width:650px){
+  .taxiInfoGrid{grid-template-columns:1fr}
+  .taxiChecklistHead,.taxiChecklistRow{grid-template-columns:minmax(0,1fr) 50px 62px 58px 78px;gap:4px}
+  .taxiChecklistHead{font-size:8px}
+  .taxiChecklistRow{font-size:10px}
+}
+</style>
+
+
+<script id="sanistock-checklist-taxi-js">
+(function(){
+  const TAXI_ITEMS = [{"category": "PAPIERS VEHICULE", "name": "Carnet métrologique du contrôle :", "quantity": ""}, {"category": "PAPIERS VEHICULE", "name": "Arreté des tarifs", "quantity": ""}, {"category": "PAPIERS VEHICULE", "name": "Carte grise :", "quantity": ""}, {"category": "PAPIERS VEHICULE", "name": "Arrêté préfectoral :", "quantity": ""}, {"category": "PAPIERS VEHICULE", "name": "Assurance :", "quantity": ""}, {"category": "PAPIERS VEHICULE", "name": "Carte Leclerc :", "quantity": ""}, {"category": "PAPIERS VEHICULE", "name": "Constat :", "quantity": ""}, {"category": "PAPIERS VEHICULE", "name": "Contrôle technique :", "quantity": ""}, {"category": "PAPIERS VEHICULE", "name": "Affichage du taux de CO2 :", "quantity": ""}, {"category": "PAPIERS VEHICULE", "name": "Plaquette des tarifs taxis:", "quantity": ""}, {"category": "PAPIERS VEHICULE", "name": "Facturier :", "quantity": ""}, {"category": "PAPIERS VEHICULE", "name": "TPE CB", "quantity": ""}, {"category": "Sécurité", "name": "Brise vitre coupe ceinture", "quantity": "1"}, {"category": "Sécurité", "name": "Gilet haute visibilité jaune", "quantity": "2"}, {"category": "Sécurité", "name": "Triangle de signalisation", "quantity": "1"}, {"category": "Sécurité", "name": "Extincteur", "quantity": "1"}, {"category": "Sécurité", "name": "Lampe de poche", "quantity": "1"}, {"category": "Sécurité", "name": "Gaine opaque", "quantity": "1"}, {"category": "Trousse de secours", "name": "Compresse stérile 10x10cm", "quantity": "10"}, {"category": "Trousse de secours", "name": "Pansement absorbant stérile 20x40cm", "quantity": "1"}, {"category": "Trousse de secours", "name": "Bande extensible Velpeau 10cm x4m", "quantity": "1"}, {"category": "Trousse de secours", "name": "Dosettes 5ml de Chlorhexidine 0,2%", "quantity": "5"}, {"category": "Trousse de secours", "name": "Paire de ciseaux universels bouts mousse", "quantity": "1"}, {"category": "Trousse de secours", "name": "Paire de gants latex stériles taille 8/9", "quantity": "1"}, {"category": "Trousse de secours", "name": "Clip de fixation pour bandes", "quantity": "2"}, {"category": "Trousse de secours", "name": "Sucres emballés", "quantity": "3"}, {"category": "Valise noir", "name": "Protege siege", "quantity": "2"}, {"category": "Valise noir", "name": "Sac poubelle", "quantity": "1"}, {"category": "Valise noir", "name": "Sac dasri", "quantity": "1"}, {"category": "Valise noir", "name": "Carre de protection", "quantity": "1"}, {"category": "Valise noir", "name": "Cotocel", "quantity": "5"}, {"category": "Valise noir", "name": "1 paire de gants jetables", "quantity": "1"}, {"category": "Valise noir", "name": "Masques chirurgical", "quantity": "2"}, {"category": "Valise noir", "name": "Masque FFP2", "quantity": "1"}, {"category": "Désinfection", "name": "Bombe desinfectante", "quantity": "1"}, {"category": "Désinfection", "name": "Lingettes desinfectantes", "quantity": "1"}, {"category": "Désinfection", "name": "Poubelle", "quantity": "1"}];
+
+  function esc(v){
+    return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  function taxiHtml(vehicle){
+    const groups = {};
+    TAXI_ITEMS.forEach(function(item){
+      if(!groups[item.category]) groups[item.category]=[];
+      groups[item.category].push(item);
+    });
+
+    let html = '';
+    html += '<div id="checklistTaxiDetail">';
+    html += '<button type="button" class="back" onclick="fermerChecklistTaxi()">← Retour</button>';
+    html += '<h1>🚕 CHECK-LIST TAXI</h1>';
+    html += '<p id="checklistTaxiSubtitle" style="margin:0 0 14px;color:#64748b">Véhicule : '+esc(vehicle)+'</p>';
+
+    html += '<div class="taxiInfoCard">';
+    html += '<div class="taxiInfoTitle">Informations du contrôle</div>';
+    html += '<div class="taxiInfoGrid">';
+    html += '<div class="taxiField"><label>Equipage :</label><input id="taxiEquipage" type="text" placeholder="Saisir l’équipage"></div>';
+    html += '<div class="taxiField"><label>Date :</label><input id="taxiDate" type="text" placeholder="Saisir la date"></div>';
+    html += '<div class="taxiField"><label>Immatriculation :</label><input id="taxiImmatriculation" type="text" value="'+esc(vehicle.split(' – ')[0] || '')+'" placeholder="Saisir l’immatriculation"></div>';
+    html += '<div class="taxiField"><label>Kms :</label><input id="taxiKms" type="text" inputmode="numeric" placeholder="Saisir le kilométrage"></div>';
+    html += '</div></div>';
+
+    Object.keys(groups).forEach(function(cat){
+      html += '<div class="taxiSection">';
+      html += '<div class="taxiSectionTitle">'+esc(cat)+'</div>';
+      html += '<div class="taxiChecklistHead"><div>Inventaire</div><div>Quantité</div><div>Présent</div><div>Manque</div><div>Quantité manquante</div></div>';
+      groups[cat].forEach(function(item,i){
+        const id='taxiItem'+i;
+        html += '<div class="taxiChecklistRow" data-taxi-index="'+i+'">';
+        html += '<div>'+esc(item.name)+'</div>';
+        html += '<div class="taxiQty">'+esc(item.quantity)+'</div>';
+        html += '<div class="taxiChoice"><input type="radio" name="'+id+'" value="present" checked onchange="toggleTaxiMissing('+i+',false)"></div>';
+        html += '<div class="taxiChoice"><input type="radio" name="'+id+'" value="manque" onchange="toggleTaxiMissing('+i+',true)"></div>';
+        html += '<div><input id="taxiMissing'+i+'" class="taxiMissingQty" type="number" min="0" step="1" placeholder="—" disabled></div>';
+        html += '</div>';
+      });
+      html += '</div>';
+    });
+
+    html += '<div class="taxiSection">';
+    html += '<div class="taxiSectionTitle">OBSERVATIONS</div>';
+    html += '<textarea id="taxiObservations" style="width:100%;min-height:90px;box-sizing:border-box;border:1px solid #cbd8e4;border-radius:10px;padding:10px;font:inherit" placeholder="Saisir les observations"></textarea>';
+    html += '</div>';
+
+    html += '<div class="taxiSection">';
+    html += '<div class="taxiSectionTitle">Signature</div>';
+    html += '<input id="taxiSignature" type="text" style="width:100%;box-sizing:border-box;padding:11px;border:1px solid #cbd8e4;border-radius:10px" placeholder="Chauffeur">';
+    html += '</div>';
+
+    html += '<div class="taxiActions">';
+    html += '<button type="button" class="taxiValidate" onclick="validerChecklistTaxi()">✓ TERMINER LE CONTRÔLE</button>';
+    html += '<button type="button" class="taxiPdfBtn" onclick="genererPdfTaxi()">📄 GÉNÉRER LE PDF</button>';
+    html += '</div>';
+    html += '<div class="taxiNotice">Les champs Equipage, Date, Immatriculation et Kms sont saisis manuellement dans l’application.</div>';
+    html += '</div>';
+    return html;
+  }
+
+  window.ouvrirChecklistVehiculeFixe = function(v){
+    if(!String(v).toUpperCase().includes('TAXI')){
+      alert('Véhicule sélectionné : '+v+'\n\nLa check-list détaillée de ce véhicule sera ajoutée ici.');
+      return;
+    }
+    const box=document.getElementById('checklistContent');
+    const sub=document.getElementById('checklistSubtitle');
+    if(!box) return;
+    if(sub) sub.textContent='TAXI — contrôle du véhicule';
+    box.innerHTML=taxiHtml(v);
+    const d=document.getElementById('checklistTaxiDetail');
+    if(d) d.classList.add('show');
+  };
+
+  window.fermerChecklistTaxi=function(){
+    if(typeof window.ouvrirChecklistVehicules==='function') window.ouvrirChecklistVehicules('TAXIS');
+  };
+
+  window.toggleTaxiMissing=function(i,enabled){
+    const q=document.getElementById('taxiMissing'+i);
+    if(!q) return;
+    q.disabled=!enabled;
+    if(!enabled) q.value='';
+  };
+
+  window.validerChecklistTaxi=function(){
+    const equipage=(document.getElementById('taxiEquipage')||{}).value||'';
+    const date=(document.getElementById('taxiDate')||{}).value||'';
+    const immat=(document.getElementById('taxiImmatriculation')||{}).value||'';
+    const kms=(document.getElementById('taxiKms')||{}).value||'';
+    if(!equipage || !date || !immat || !kms){
+      alert('Merci de remplir Equipage, Date, Immatriculation et Kms.');
+      return;
+    }
+    const result=TAXI_ITEMS.map(function(item,i){
+      const manque=document.querySelector('input[name="taxiItem'+i+'"][value="manque"]');
+      const missing=document.getElementById('taxiMissing'+i);
+      return {categorie:item.category,element:item.name,quantite:item.quantity,present:!(manque&&manque.checked),quantiteManquante:(missing&&missing.value)||''};
+    });
+    localStorage.setItem('sanistock_last_taxi_checklist',JSON.stringify({vehicle:document.getElementById('checklistTaxiSubtitle')?.textContent||'',equipage:equipage,date:date,immatriculation:immat,kms:kms,result:result,observations:document.getElementById('taxiObservations')?.value||'',signature:document.getElementById('taxiSignature')?.value||'',savedAt:new Date().toISOString()}));
+    alert('✅ Contrôle TAXI enregistré sur cet appareil.');
+  };
+
+  window.genererPdfTaxi=function(){
+    const detail=document.getElementById('checklistTaxiDetail');
+    if(!detail) return;
+    window.print();
+  };
+})();
+</script>
+
 </body>
 </html>
