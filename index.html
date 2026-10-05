@@ -10534,7 +10534,10 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
       '<div class="materialHeader">MATERIEL VEHICULE</div><table><tr class="head"><td class="item">Inventaire</td><td class="qty">Quantité</td><td>Présent</td><td>Manque</td><td class="red">Quantité<br>manquante</td></tr>'+rows+'</table>'+
       '</div><div class="page page2"><div class="title">FICHE DE CONTRÔLE ET D’ENTRETIEN MENSUEL DES TAXIS</div>'+
       '<div class="bottom"><div class="bottomTitle">OBSERVATIONS</div><div class="obs">'+taxiPdfEscape(obs)+'</div><div class="bottomTitle">SIGNATURES</div><div class="sign">Chauffeur : <b>'+taxiPdfEscape(equipage)+'</b>'+(sig?'<img src="'+sig+'" alt="Signature">':'')+'</div></div>'+
-      '</div>
+      '</div></body></html>';
+}
+})();
+</script>
 <!-- ===== TAXI PDF EXACT TEMPLATE OVERRIDE ===== -->
 <script id="sanistock-taxi-pdf-exact">
 (function(){
@@ -10632,104 +10635,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 
 </script>
 
-<script id="sanistock-taxi-final-pdf-mail-fix">
-(function(){
-  function dateFR2(v){
-    if(!v) return '';
-    var p=String(v).split('-');
-    return p.length===3 ? p[2]+'/'+p[1]+'/'+p[0] : String(v);
-  }
 
-  async function pdfExactTaxi(){
-    if(typeof window.saniStockGenererTaxiPdfExact !== 'function'){
-      throw new Error('Le générateur PDF exact de la fiche Taxi est introuvable.');
-    }
-    return await window.saniStockGenererTaxiPdfExact();
-  }
-
-  window.genererPdfTaxi = async function(){
-    var btn=document.querySelector('.taxiPdfBtn');
-    var old=btn ? btn.textContent : '';
-    if(btn){btn.disabled=true;btn.textContent='⏳ GÉNÉRATION DU PDF...';}
-
-    try{
-      var pdf=await pdfExactTaxi();
-      var url=URL.createObjectURL(pdf.blob);
-      var a=document.createElement('a');
-      a.href=url;
-      a.download=pdf.filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(function(){URL.revokeObjectURL(url);},15000);
-    }catch(e){
-      console.error(e);
-      alert('❌ Impossible de générer le PDF : '+(e && e.message ? e.message : e));
-    }finally{
-      if(btn){btn.disabled=false;btn.textContent=old||'📄 GÉNÉRER LE PDF';}
-    }
-  };
-
-  window.envoyerMailTaxi = async function(){
-    var btn=document.querySelector('.taxiMailBtn');
-    var old=btn ? btn.textContent : '';
-    if(btn){btn.disabled=true;btn.textContent='⏳ PRÉPARATION DU PDF...';}
-
-    try{
-      var pdf=await pdfExactTaxi();
-      var file=new File([pdf.blob],pdf.filename,{type:'application/pdf'});
-      var dest='hognonlewis@gmail.com';
-      var immat=document.getElementById('taxiImmatriculation')?.value||'';
-      var date=dateFR2(document.getElementById('taxiDate')?.value||'');
-      var equip=document.getElementById('taxiEquipage')?.value||'';
-
-      var subject='Check-list Taxi - '+immat+' - '+date;
-      var body=[
-        'Bonjour,',
-        '',
-        'Veuillez trouver ci-joint la fiche de contrôle et d’entretien mensuel du taxi.',
-        '',
-        'Immatriculation : '+immat,
-        'Chauffeur : '+equip,
-        'Date : '+date,
-        '',
-        'Cordialement,',
-        'SaniStock'
-      ].join('\n');
-
-      /*
-       * Le même PDF EXACT que le bouton « GÉNÉRER LE PDF » est utilisé ici.
-       * Android/iOS : partage natif => Outlook/Gmail peut recevoir le PDF en pièce jointe.
-       * PC : téléchargement du PDF + ouverture du mail ; le fichier doit être joint dans Outlook.
-       */
-      if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
-        await navigator.share({files:[file],title:subject,text:body});
-      }else{
-        var url=URL.createObjectURL(pdf.blob);
-        var a=document.createElement('a');
-        a.href=url;
-        a.download=pdf.filename;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setTimeout(function(){URL.revokeObjectURL(url);},15000);
-
-        window.location.href='mailto:'+dest+
-          '?subject='+encodeURIComponent(subject)+
-          '&body='+encodeURIComponent(
-            body+'\n\nLe PDF exact a été téléchargé sous le nom : '+pdf.filename+
-            '\nAjoutez-le en pièce jointe avant l’envoi.'
-          );
-      }
-    }catch(e){
-      console.error(e);
-      alert('❌ Impossible de préparer le PDF pour le mail : '+(e && e.message ? e.message : e));
-    }finally{
-      if(btn){btn.disabled=false;btn.textContent=old||'📧 ENVOYER PAR MAIL';}
-    }
-  };
-})();
-</script>
 
 </body></html>';
   }
