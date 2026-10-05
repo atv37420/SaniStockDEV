@@ -10594,7 +10594,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
       pagebreak:{mode:['css','legacy']}
     }).from(target).toPdf();
 
-    const pdfBlob=await worker.output('blob');
+    const pdfBlob=await worker.outputPdf('blob');
     document.body.removeChild(frame);
     return {blob:pdfBlob,filename:filename,equipage:equipage,immat:immat,date:d};
   }
