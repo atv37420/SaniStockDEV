@@ -10454,9 +10454,17 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     return p.length===3 ? p[2]+'/'+p[1]+'/'+p[0] : v;
   }
   function taxiEtat(i){
-    const p=document.querySelector('input[name="taxiItem'+i+'"][value="present"]');
-    const m=document.querySelector('input[name="taxiItem'+i+'"][value="manque"]');
-    return m&&m.checked?'manque':(p&&p.checked?'present':'');
+    const row=document.querySelector('#checklistTaxiDetail .taxiChecklistRow[data-taxi-index="'+i+'"]');
+    if(row){
+      const checked=row.querySelector('input[type="radio"]:checked, input[type="checkbox"]:checked');
+      if(checked){
+        if(String(checked.value).toLowerCase()==='manque') return 'manque';
+        if(String(checked.value).toLowerCase()==='present') return 'present';
+      }
+    }
+    const p=document.querySelector('input[name="taxiItem'+i+'"][value="present"]:checked');
+    const m=document.querySelector('input[name="taxiItem'+i+'"][value="manque"]:checked');
+    return m?'manque':(p?'present':'');
   }
   function taxiSectionClass(cat){
     if(cat==='Sécurité') return 'sec';
@@ -10485,7 +10493,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
       }
       const etat=taxiEtat(i);
       const miss=document.getElementById('taxiMissing'+i)?.value||'';
-      rows += '<tr><td class="item">'+taxiPdfEscape(item.name)+'</td><td class="qty">'+taxiPdfEscape(item.quantity)+'</td><td class="state">'+(etat==='present'?'✓':'–')+'</td><td class="state">'+(etat==='manque'?'✓':'–')+'</td><td class="missing">'+taxiPdfEscape(miss||'')+'</td></tr>';
+      rows += '<tr><td class="item">'+taxiPdfEscape(item.name)+'</td><td class="qty">'+taxiPdfEscape(item.quantity)+'</td><td class="state"><span class="pdfBox '+(etat==='present'?'checked':'')+'">'+(etat==='present'?'✓':'')+'</span></td><td class="state"><span class="pdfBox '+(etat==='manque'?'checked':'')+'">'+(etat==='manque'?'✓':'')+'</span></td><td class="missing">'+taxiPdfEscape(miss||'')+'</td></tr>';
     });
     return '<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Fiche de contrôle et d’entretien mensuel des taxis</title><style>'+`
       @page{size:A4 portrait;margin:9mm 8mm 9mm 8mm}
@@ -10500,7 +10508,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
       .papers{background:#d9d9d9;border:1.5px solid #111;padding:4px 6px;display:grid;grid-template-columns:1fr 1fr;column-gap:18px}
       .paperRow{display:flex;justify-content:space-between;border-bottom:0;min-height:15px}.paperRow span:last-child{margin-left:8px}
       .materialHeader{background:#d9d9d9;text-align:center;color:#52739a;text-decoration:underline;font-weight:700;font-size:11px;padding:3px;border:1.5px solid #111;border-bottom:0;margin-top:0}
-      .head td{background:#e6e6e6;font-weight:700;text-align:center}.head .red{color:#e11}
+      .head td{background:#e6e6e6;font-weight:700;text-align:center}.head .red{color:#e11}.pdfBox{display:inline-flex;width:11px;height:11px;border:1px solid #111;align-items:center;justify-content:center;font-size:9px;line-height:10px;font-weight:900;vertical-align:middle;background:#fff}.pdfBox.checked{background:#fff}.pdfPaperState{white-space:nowrap}
       .section td{text-align:center;font-weight:700;padding:4px;color:#111}.section.sec td{background:#fff500}.section.trousse td{background:#f00000;color:#111}.section.valise td{background:#000;color:#fff}.section.desinf td{background:#d9d9d9}.section.normal td{background:#d9d9d9;color:#52739a;text-decoration:underline}
       tr:not(.section):nth-child(even) td{background:#d1d1d1}.item{width:43%}.qty{width:10%;text-align:center}.state{width:9%;text-align:center}.missing{width:20%;text-align:center;text-decoration:underline dotted}
       .bottom{margin-top:7mm}.bottomTitle{background:#d9d9d9;border:1.5px solid #111;text-align:center;color:#52739a;text-decoration:underline;font-weight:700;padding:4px}.obs{height:45mm;border:1.5px solid #111;padding:5px;white-space:pre-wrap}.sign{height:30mm;border:1.5px solid #111;padding:5px;position:relative}.sign img{max-width:48%;max-height:22mm;display:block;margin:3mm auto 0}.signName{position:absolute;left:8px;bottom:5px}.note{font-size:8px;margin-top:4mm}.page2 .title{margin-bottom:5mm}
@@ -10517,7 +10525,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
         papers.forEach(function(item,i){
           const idx=TAXI_ITEMS.indexOf(item);
           const etat=taxiEtat(idx);
-          ph+='<div class="paperRow"><span>'+taxiPdfEscape(item.name)+'</span><span>'+(etat==='present'?'✓':etat==='manque'?'✗':'–')+'</span></div>';
+          ph+='<div class="paperRow"><span>'+taxiPdfEscape(item.name)+'</span><span class="pdfPaperState"><span class="pdfBox '+(etat==='present'?'checked':'')+'">'+(etat==='present'?'✓':'')+'</span> <span class="pdfBox '+(etat==='manque'?'checked':'')+'">'+(etat==='manque'?'✓':'')+'</span></span></div>';
         });
         return ph;
       })()+'</div>'+
