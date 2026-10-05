@@ -10546,16 +10546,8 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
       alert('Merci de vérifier le chauffeur, la date et l’immatriculation avant l’envoi du mail.');
       return;
     }
-    let dest='';
-    try{ dest=String(localStorage.getItem('sanistock_taxi_email_dest')||'').trim(); }catch(e){}
-    dest=prompt('Adresse e-mail du destinataire :',dest)||'';
-    dest=dest.trim();
-    if(!dest) return;
-    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(dest)){
-      alert('Adresse e-mail invalide.');
-      return;
-    }
-    try{localStorage.setItem('sanistock_taxi_email_dest',dest);}catch(e){}
+    // Adresse fixe du secrétariat SaniStock
+    const dest='atveron@outlook.fr';
     const d=taxiPdfDate(date);
     const subject='Check-list Taxi - '+immat+' - '+d;
     const body=[
@@ -10569,7 +10561,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
       'Date : '+d,
       'Kms : '+kms,
       '',
-      'Le PDF doit être joint à ce message après sa génération depuis SaniStock.',
+      'Le PDF de la fiche Taxi est à joindre à ce message après sa génération depuis SaniStock.',
       '',
       'Cordialement,',
       'SaniStock'
