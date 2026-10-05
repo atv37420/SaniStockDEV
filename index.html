@@ -10257,7 +10257,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
         html += '<div class="taxiQty">'+esc(item.quantity)+'</div>';
         html += '<div class="taxiChoice"><input type="radio" name="'+id+'" value="present" onchange="toggleTaxiMissing('+i+',false)"></div>';
         html += '<div class="taxiChoice"><input type="radio" name="'+id+'" value="manque" onchange="toggleTaxiMissing('+i+',true)"></div>';
-        html += '<div><input id="taxiMissing'+i+'" class="taxiMissingQty" type="number" min="0" step="1" placeholder="—" disabled></div>';
+        html += '<div><select id="taxiMissing'+i+'" class="taxiMissingQty" disabled><option value="">—</option>'+Array.from({length:(Number(item.quantity)>0?Number(item.quantity):10)},function(_,n){return '<option value="'+(n+1)+'">'+(n+1)+'</option>';}).join('')+'</select></div>';
         html += '</div>';
       });
       html += '</div>';
