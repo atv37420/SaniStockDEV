@@ -10536,7 +10536,70 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
       '<div class="bottom"><div class="bottomTitle">OBSERVATIONS</div><div class="obs">'+taxiPdfEscape(obs)+'</div><div class="bottomTitle">SIGNATURES</div><div class="sign">Chauffeur : <b>'+taxiPdfEscape(equipage)+'</b>'+(sig?'<img src="'+sig+'" alt="Signature">':'')+'</div></div>'+
       '</div></body></html>';
   }
-  window.envoyerMailTaxi=function(){
+  async function taxiChargerHtml2Pdf(){
+    if(window.html2pdf) return true;
+    return new Promise(function(resolve){
+      const sc=document.createElement('script');
+      sc.src='https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+      sc.onload=function(){resolve(!!window.html2pdf);};
+      sc.onerror=function(){resolve(false);};
+      document.head.appendChild(sc);
+    });
+  }
+
+  async function taxiCreerPdfBlob(){
+    const ok=await taxiChargerHtml2Pdf();
+    if(!ok) throw new Error('Impossible de charger le générateur PDF.');
+    const html=taxiBuildPdfHtml();
+    const frame=document.createElement('iframe');
+    frame.style.position='fixed';
+    frame.style.left='-10000px';
+    frame.style.top='0';
+    frame.style.width='210mm';
+    frame.style.height='297mm';
+    frame.style.border='0';
+    frame.setAttribute('aria-hidden','true');
+    document.body.appendChild(frame);
+
+    await new Promise(function(resolve,reject){
+      try{
+        frame.contentDocument.open();
+        frame.contentDocument.write(html);
+        frame.contentDocument.close();
+        setTimeout(resolve,250);
+      }catch(e){reject(e);}
+    });
+
+    const pages=frame.contentDocument.querySelectorAll('.page');
+    pages.forEach(function(el){el.style.pageBreakAfter='always';});
+    const target=frame.contentDocument.body;
+
+    const equipage=document.getElementById('taxiEquipage')?.value||'';
+    const date=document.getElementById('taxiDate')?.value||'';
+    const immat=document.getElementById('taxiImmatriculation')?.value||'';
+    const d=taxiPdfDate(date);
+    const filename='Check-list Taxi - '+(immat||'sans-immatriculation')+' - '+(d||'date')+'.pdf';
+
+    const worker=window.html2pdf().set({
+      margin:0,
+      filename:filename,
+      image:{type:'jpeg',quality:0.98},
+      html2canvas:{
+        scale:2,
+        useCORS:true,
+        backgroundColor:'#ffffff',
+        logging:false
+      },
+      jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
+      pagebreak:{mode:['css','legacy']}
+    }).from(target).toPdf();
+
+    const pdfBlob=await worker.output('blob');
+    document.body.removeChild(frame);
+    return {blob:pdfBlob,filename:filename,equipage:equipage,immat:immat,date:d};
+  }
+
+  window.envoyerMailTaxi=async function(){
     const equipage=document.getElementById('taxiEquipage')?.value||'';
     const date=document.getElementById('taxiDate')?.value||'';
     const immat=document.getElementById('taxiImmatriculation')?.value||'';
@@ -10546,28 +10609,63 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
       alert('Merci de vérifier le chauffeur, la date et l’immatriculation avant l’envoi du mail.');
       return;
     }
-    // Adresse fixe du secrétariat SaniStock
-    const dest='hognonlewis@gmail.com';
-    const d=taxiPdfDate(date);
-    const subject='Check-list Taxi - '+immat+' - '+d;
-    const body=[
-      'Bonjour,',
-      '',
-      'Veuillez trouver ci-joint la fiche de contrôle et d’entretien mensuel du taxi.',
-      '',
-      'Véhicule : '+vehicle,
-      'Immatriculation : '+immat,
-      'Chauffeur : '+equipage,
-      'Date : '+d,
-      'Kms : '+kms,
-      '',
-      'Le PDF de la fiche Taxi est à joindre à ce message après sa génération depuis SaniStock.',
-      '',
-      'Cordialement,',
-      'SaniStock'
-    ].join('\n');
-    const mailto='mailto:'+encodeURIComponent(dest)+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
-    window.location.href=mailto;
+
+    const btn=document.querySelector('.taxiMailBtn');
+    const oldText=btn?btn.textContent:'';
+    if(btn){btn.disabled=true;btn.textContent='⏳ PRÉPARATION DU PDF...';}
+
+    try{
+      const pdf=await taxiCreerPdfBlob();
+      const file=new File([pdf.blob],pdf.filename,{type:'application/pdf'});
+      const dest='hognonlewis@gmail.com';
+      const subject='Check-list Taxi - '+immat+' - '+pdf.date;
+      const body=[
+        'Bonjour,',
+        '',
+        'Veuillez trouver ci-joint la fiche de contrôle et d’entretien mensuel du taxi.',
+        '',
+        'Véhicule : '+vehicle,
+        'Immatriculation : '+immat,
+        'Chauffeur : '+equipage,
+        'Date : '+pdf.date,
+        'Kms : '+kms,
+        '',
+        'Cordialement,',
+        'SaniStock'
+      ].join('\n');
+
+      // Sur Android/iOS, la feuille de partage permet de choisir Outlook/Gmail
+      // avec le PDF déjà attaché.
+      if(navigator.canShare && navigator.share && navigator.canShare({files:[file]})){
+        await navigator.share({
+          files:[file],
+          title:subject,
+          text:body
+        });
+        alert('✅ Le PDF a été préparé avec la fiche en pièce jointe. Choisissez votre messagerie puis envoyez au secrétariat.');
+      }else{
+        // Sur PC, téléchargement automatique du PDF puis ouverture du mail.
+        const url=URL.createObjectURL(pdf.blob);
+        const a=document.createElement('a');
+        a.href=url;
+        a.download=pdf.filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(function(){URL.revokeObjectURL(url);},5000);
+
+        const mailto='mailto:'+encodeURIComponent(dest)+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(
+          body+'\n\n📎 Le PDF a été téléchargé automatiquement. Ajoutez le fichier "'+pdf.filename+'" à ce mail avant de l’envoyer.'
+        );
+        window.location.href=mailto;
+        alert('✅ PDF généré et téléchargé. Il est prêt à être ajouté au mail.');
+      }
+    }catch(e){
+      console.error(e);
+      alert('❌ Impossible de préparer le PDF pour le mail. Vous pouvez utiliser « GÉNÉRER LE PDF ».');
+    }finally{
+      if(btn){btn.disabled=false;btn.textContent=oldText||'📧 ENVOYER PAR MAIL';}
+    }
   };
 
   window.genererPdfTaxi=function(){
