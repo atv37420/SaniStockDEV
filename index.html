@@ -10484,98 +10484,76 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     const obs=document.getElementById('taxiObservations')?.value||'';
     const sig=document.getElementById('taxiSignature')?.value||'';
 
-    function stateBox(i){
+    function stateMark(i){
       const st=taxiEtat(i);
-      if(st==='present') return '<span class="mark">✓</span>';
+      if(st==='present') return '<span class="mark present">✓</span>';
       if(st==='manque') return '<span class="mark manque">X</span>';
-      return '<span class="mark empty"></span>';
+      return '<span class="mark"></span>';
     }
-
-    function paperHtml(){
-      const papers=TAXI_ITEMS.filter(function(item){return item.category==='PAPIERS VEHICULE';});
-      const left=papers.slice(0,6), right=papers.slice(6);
-      function row(item){
+    function paperRows(items){
+      return items.map(function(item){
         const idx=TAXI_ITEMS.indexOf(item);
-        return '<div class="paperRow"><span>'+taxiPdfEscape(item.name)+'</span><span>'+stateBox(idx)+'</span></div>';
-      }
-      return '<div class="paperGrid"><div>'+left.map(row).join('')+'</div><div>'+right.map(row).join('')+'</div></div>';
+        return '<div class="paperRow"><span>'+taxiPdfEscape(item.name)+'</span>'+stateMark(idx)+'</div>';
+      }).join('');
     }
-
-    function materialRows(cat){
-      return TAXI_ITEMS.filter(function(item){return item.category===cat;}).map(function(item,idx){
-        const i=TAXI_ITEMS.indexOf(item);
-        const miss=document.getElementById('taxiMissing'+i)?.value||'';
-        const st=taxiEtat(i);
-        const cls=(idx%2===1)?' alt':'';
-        return '<div class="matRow'+cls+'">'+
+    function materialRows(category){
+      const arr=TAXI_ITEMS.filter(function(item){return item.category===category;});
+      return arr.map(function(item,j){
+        const idx=TAXI_ITEMS.indexOf(item);
+        const st=taxiEtat(idx);
+        const miss=document.getElementById('taxiMissing'+idx)?.value||'';
+        const statePresent=st==='present'?'<span class="mark present">✓</span>':'<span class="mark"></span>';
+        const stateMissing=st==='manque'?'<span class="mark manque">X</span>':'<span class="mark"></span>';
+        return '<div class="matRow '+(j%2?'alt':'')+'">'+
           '<div class="matName">'+taxiPdfEscape(item.name)+'</div>'+
           '<div class="matQty">'+taxiPdfEscape(item.quantity||'')+'</div>'+
-          '<div class="matState">'+(st==='present'?'<span class="mark">✓</span>':'<span class="mark empty"></span>')+'</div>'+
-          '<div class="matState">'+(st==='manque'?'<span class="mark manque">X</span>':'<span class="mark empty"></span>')+'</div>'+
-          '<div class="matMissing">'+taxiPdfEscape(miss||'')+'</div>'+
+          '<div class="matState">'+statePresent+'</div>'+
+          '<div class="matState">'+stateMissing+'</div>'+
+          '<div class="matMissing">'+taxiPdfEscape(miss)+'</div>'+
         '</div>';
       }).join('');
     }
 
-    return '<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Fiche Taxi</title><style>'+
-      '@page{size:A4 portrait;margin:8mm 8mm 8mm 8mm}'+
+    const papers=TAXI_ITEMS.filter(function(item){return item.category==='PAPIERS VEHICULE';});
+    const half=Math.ceil(papers.length/2);
+
+    return '<!doctype html><html lang="fr"><head><meta charset="utf-8">'+
+      '<title>Fiche de contrôle et d’entretien mensuel des taxis</title><style>'+
+      '@page{size:A4 portrait;margin:8mm}'+
       '*{box-sizing:border-box}'+
       'html,body{margin:0;padding:0;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
-      'body{font-size:8.8pt;line-height:1.2}'+
-      '.page{width:194mm;min-height:281mm;page-break-after:always;position:relative}'+
-      '.page:last-child{page-break-after:auto}'+
-      '.title{text-align:center;color:#557b47;font-weight:800;font-size:12pt;margin:0 0 4mm;text-transform:uppercase;letter-spacing:.15px}'+
-      '.panelTitle{background:#d9d9d9;color:#52739a;text-decoration:underline;text-align:center;font-weight:800;padding:2.2mm 2mm;margin-top:2mm}'+
-      '.infoPanel{background:#d9d9d9;padding:3mm 4mm 2.6mm}'+
+      'body{font-size:8.5pt;line-height:1.18}'+
+      '.page{width:194mm;min-height:281mm;page-break-after:always}.page:last-child{page-break-after:auto}'+
+      '.title{text-align:center;color:#557b47;font-size:12pt;font-weight:800;text-transform:uppercase;margin:0 0 4mm}'+
+      '.sectionTitle{background:#d9d9d9;border:1.3px solid #111;border-bottom:0;color:#52739a;text-decoration:underline;text-align:center;font-weight:800;padding:2.2mm}'+
+      '.info,.papers{background:#d9d9d9;border:1.3px solid #111;padding:3mm 4mm}'+
       '.infoGrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:2.5mm 7mm}'+
-      '.wide{grid-column:1/4}'+
-      '.infoLine{min-width:0;white-space:nowrap}'+
-      '.infoLine b{font-weight:800}'+
-      '.paperPanel{background:#d9d9d9;padding:2.2mm 4mm 2.6mm}'+
-      '.paperGrid{display:grid;grid-template-columns:1fr 1fr;column-gap:12mm}'+
-      '.paperRow{display:flex;align-items:center;justify-content:space-between;gap:4mm;min-height:7.2mm;padding:1.2mm 0}'+
-      '.paperRow>span:first-child{padding-right:2mm}'+
-      '.mark{width:4.5mm;height:4.5mm;border:1px solid #111;border-radius:1px;display:inline-flex;align-items:center;justify-content:center;font-weight:900;font-size:8.5pt;line-height:1;color:#111;background:#fff;flex:none}'+
-      '.mark.manque{font-size:8pt}'+
-      '.mark.empty{color:transparent}'+
-      '.matHeader{background:#d9d9d9;text-align:center;color:#52739a;text-decoration:underline;font-weight:800;padding:2.2mm 2mm;margin-top:2mm}'+
-      '.colHead{display:grid;grid-template-columns:1fr 18mm 18mm 18mm 25mm;align-items:center;text-align:center;font-weight:800;background:#f0f0f0;padding:2.2mm 0}'+
-      '.colHead .name{text-align:left;padding-left:2.5mm}'+
-      '.colHead .missing{color:#e11}'+
-      '.sectionBar{font-weight:800;text-align:center;padding:2.1mm 2mm;margin-top:2mm}'+
-      '.sectionBar.sec{background:#fff500;color:#111}'+
-      '.sectionBar.trousse{background:#f00000;color:#fff}'+
-      '.sectionBar.valise{background:#000;color:#fff}'+
-      '.sectionBar.desinf{background:#d9d9d9;color:#111}'+
-      '.materialList{margin:0}'+
-      '.matRow{display:grid;grid-template-columns:1fr 18mm 18mm 18mm 25mm;align-items:center;min-height:7.2mm;padding:1mm 0}'+
-      '.matRow.alt{background:#ececec}'+
-      '.matName{padding:0 2.5mm;font-size:8.4pt}'+
-      '.matQty,.matState,.matMissing{text-align:center}'+
-      '.matMissing{text-decoration:underline dotted;text-underline-offset:2px}'+
-      '.footerHint{font-size:7.6pt;color:#555;margin-top:3mm}'+
-      '.bottomTitle{background:#d9d9d9;color:#52739a;text-decoration:underline;text-align:center;font-weight:800;padding:2.3mm 2mm}'+
-      '.obsBox{min-height:63mm;padding:3mm 4mm;white-space:pre-wrap}'+
-      '.signBox{min-height:49mm;padding:3mm 4mm;position:relative}'+
-      '.signName{font-weight:800;margin-bottom:2mm}'+
-      '.signBox img{display:block;max-width:78%;max-height:32mm;margin:2mm auto 0}'+
-      '.meta{font-size:7.7pt;color:#4e6573;margin-top:2.5mm}'+
-      '.summaryBox{margin-top:3mm;background:#f5f5f5;padding:2.5mm 3mm;font-size:8pt}'+
-      '@media print{a{color:inherit;text-decoration:none}}'+
+      '.wide{grid-column:1/4}.infoLine{white-space:nowrap}.infoLine b{font-weight:800}'+
+      '.paperGrid{display:grid;grid-template-columns:1fr 1fr;gap:0 12mm}.paperRow{display:flex;align-items:center;justify-content:space-between;min-height:6.9mm;padding:1.1mm 0;gap:4mm}'+
+      '.mark{display:inline-flex;align-items:center;justify-content:center;flex:0 0 4.6mm;width:4.6mm;height:4.6mm;border:1px solid #222;border-radius:1px;background:#fff;font-weight:900;font-size:8.5pt;line-height:1}'+
+      '.mark.present{color:#147a36}.mark.manque{color:#c8202f}'+
+      '.materialHeader{background:#d9d9d9;border:1.3px solid #111;color:#52739a;text-decoration:underline;text-align:center;font-weight:800;padding:2.2mm;margin-top:2mm}'+
+      '.columnHeader{display:grid;grid-template-columns:1fr 18mm 18mm 18mm 25mm;align-items:center;background:#efefef;border-left:1.3px solid #111;border-right:1.3px solid #111;border-bottom:1px solid #777;padding:2mm 0;text-align:center;font-weight:800}'+
+      '.columnHeader .name{text-align:left;padding-left:2.5mm}.columnHeader .missing{color:#e11}'+
+      '.sectionBar{text-align:center;font-weight:800;padding:2mm;margin-top:2mm}.sec{background:#fff500}.trousse{background:#f00000;color:#fff}.valise{background:#000;color:#fff}.desinf{background:#d9d9d9}'+
+      '.materialList{border-left:1.3px solid #111;border-right:1.3px solid #111}'+
+      '.matRow{display:grid;grid-template-columns:1fr 18mm 18mm 18mm 25mm;align-items:center;min-height:7mm;padding:1mm 0}.matRow.alt{background:#ececec}.matName{padding:0 2.5mm}.matQty,.matState,.matMissing{text-align:center}.matMissing{text-decoration:underline dotted;text-underline-offset:2px}'+
+      '.bottomTitle{background:#d9d9d9;border:1.3px solid #111;color:#52739a;text-decoration:underline;text-align:center;font-weight:800;padding:2.3mm}.obsBox{height:65mm;border:1.3px solid #111;padding:3mm;white-space:pre-wrap}.signBox{height:48mm;border:1.3px solid #111;padding:3mm;position:relative}.signBox img{display:block;max-width:75%;max-height:31mm;margin:2mm auto 0}.signName{font-weight:800}'+
+      '.meta{font-size:7.5pt;color:#526777;margin-top:2.5mm}'+
       '</style></head><body>'+
       '<div class="page">'+
         '<div class="title">FICHE DE CONTRÔLE ET D’ENTRETIEN MENSUEL DES TAXIS</div>'+
-        '<div class="panelTitle">INFORMATIONS GENERALES</div>'+
-        '<div class="infoPanel"><div class="infoGrid">'+
+        '<div class="sectionTitle">INFORMATIONS GENERALES</div>'+
+        '<div class="info"><div class="infoGrid">'+
           '<div class="infoLine">Date : <b>'+taxiPdfEscape(taxiPdfDate(date))+'</b></div>'+
           '<div class="infoLine">Immatriculation : <b>'+taxiPdfEscape(immat)+'</b></div>'+
           '<div class="infoLine">Kms : <b>'+taxiPdfEscape(kms)+'</b></div>'+
           '<div class="infoLine wide">Equipage : <b>'+taxiPdfEscape(equipage)+'</b></div>'+
         '</div></div>'+
-        '<div class="panelTitle">PAPIERS VEHICULE</div>'+
-        '<div class="paperPanel">'+paperHtml()+'</div>'+
-        '<div class="matHeader">MATERIEL VEHICULE</div>'+
-        '<div class="colHead"><div class="name">Inventaire</div><div>Quantité</div><div>Présent</div><div>Manque</div><div class="missing">Quantité<br>manquante</div></div>'+
+        '<div class="sectionTitle">PAPIERS VEHICULE</div>'+
+        '<div class="papers"><div class="paperGrid"><div>'+paperRows(papers.slice(0,half))+'</div><div>'+paperRows(papers.slice(half))+'</div></div></div>'+
+        '<div class="materialHeader">MATERIEL VEHICULE</div>'+
+        '<div class="columnHeader"><div class="name">Inventaire</div><div>Quantité</div><div>Présent</div><div>Manque</div><div class="missing">Quantité<br>manquante</div></div>'+
         '<div class="sectionBar sec">Sécurité</div>'+
         '<div class="materialList">'+materialRows('Sécurité')+'</div>'+
         '<div class="sectionBar trousse">Trousse de secours</div>'+
@@ -10587,15 +10565,14 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
         '<div class="materialList">'+materialRows('Valise noir')+'</div>'+
         '<div class="sectionBar desinf">Désinfection</div>'+
         '<div class="materialList">'+materialRows('Désinfection')+'</div>'+
-        '<div class="bottomTitle" style="margin-top:4mm">OBSERVATIONS</div>'+
+        '<div class="bottomTitle" style="margin-top:5mm">OBSERVATIONS</div>'+
         '<div class="obsBox">'+taxiPdfEscape(obs)+'</div>'+
         '<div class="bottomTitle">SIGNATURES</div>'+
         '<div class="signBox"><div class="signName">Chauffeur : '+taxiPdfEscape(equipage)+'</div>'+
           (sig&&sig.indexOf('data:image/')===0?'<img src="'+sig+'" alt="Signature">':'')+
         '</div>'+
         '<div class="meta">Véhicule : '+taxiPdfEscape(vehicle)+'</div>'+
-      '</div>'+
-      '</body></html>';
+      '</div></body></html>';
   }
 
   window.envoyerMailTaxi=function(){
