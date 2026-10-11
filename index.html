@@ -4083,8 +4083,9 @@ function normaliserActualites_(r){
 function donneesSessionEquipe_(){
   let salarie='',code='';
   try{
-    salarie=String(localStorage.getItem('sanistock_employee_name')||'').trim();
-    code=String(localStorage.getItem('sanistock_employee_code')||'').trim();
+    const mem=window.SaniStockCurrentEmployeeSession||{};
+    salarie=String(mem.salarie||localStorage.getItem('sanistock_employee_name')||'').trim();
+    code=String(mem.code||localStorage.getItem('sanistock_employee_code')||'').trim();
   }catch(e){}
   return {salarie:salarie,code:code};
 }
@@ -4122,13 +4123,16 @@ function chargerActualitesEquipe(forcer){
   }).withFailureHandler(function(err){
     let cache=[];
     try{cache=JSON.parse(localStorage.getItem('sanistock_actualites_cache')||'[]');}catch(e){cache=[];}
+    const detail=String(err&&err.message?err.message:err||'Erreur inconnue');
     if(cache.length){
       actualitesEquipeData_=cache;
       actualitesEquipeModeHorsLigne_=true;
-      if(status) status.textContent='Connexion indisponible • affichage des derniers échanges enregistrés sur cet appareil.';
+      if(status) status.textContent=navigator.onLine
+        ? 'Le serveur des actualités a refusé la demande. Affichage du cache en lecture seule ; vérifie que le dernier Code.gs a été déployé dans Apps Script. ('+detail+')'
+        : 'Hors connexion • affichage des derniers échanges enregistrés sur cet appareil.';
       rendreActualitesEquipe_();
     }else{
-      feed.innerHTML='<div class="sanNewsError"><span class="sanNewsEmptyIcon">⚠️</span><strong>Échanges indisponibles</strong><br>'+escapeHtml(err&&err.message?err.message:'Impossible de récupérer les publications.')+'</div>';
+      feed.innerHTML='<div class="sanNewsError"><span class="sanNewsEmptyIcon">⚠️</span><strong>Échanges indisponibles</strong><br>'+escapeHtml(detail)+'<br><br>'+(navigator.onLine?'Vérifie que le Code.gs contenant les fonctions Esprit d’équipe a été enregistré puis redéployé.':'Reconnecte-toi à Internet pour charger les échanges partagés.')+'</div>';
     }
   }).getPublicationsEquipe(session);
 }
@@ -4197,7 +4201,7 @@ function rendreActualitesEquipe_(){
     } else if(legacy){
       social='<div class="sanNewsLegacyNote">📌 Ancienne annonce SaniStock publiée par le responsable.</div>';
     } else {
-      social='<div class="sanNewsLegacyNote">📵 Reconnectez-vous pour aimer et commenter. Les interactions sont partagées avec toute l’équipe.</div>';
+      social='<div class="sanNewsLegacyNote">'+(navigator.onLine?'⚠️ Mode lecture seule : le serveur de l’espace d’équipe ne répond pas. Vérifie le déploiement Apps Script.':'📵 Hors connexion : reconnecte-toi à Internet pour aimer et commenter. Les interactions sont partagées avec toute l’équipe.')+'</div>';
     }
     return '<article class="'+classes+'">'
       +'<div class="sanNewsCardHead"><span class="sanNewsSymbol" aria-hidden="true">'+icon+'</span><div class="sanNewsCardMeta"><span class="sanNewsBadge '+p+'">'+badge+'</span><span class="sanNewsAuthor">'+escapeHtml(auteur)+'</span><span class="sanNewsDate">'+escapeHtml(date)+'</span></div></div>'
@@ -4696,7 +4700,9 @@ function changerCodeAdminUI(){
       box.setAttribute('aria-hidden','true');
     },1800);
   }
-  function unlock(name){
+  function unlock(name,activeCode){
+    const sessionCode=String(activeCode||localStorage.getItem(KEY_CODE)||'').trim();
+    if(name && sessionCode) window.SaniStockCurrentEmployeeSession={salarie:String(name).trim(),code:sessionCode};
     overlay.classList.add('hidden');
     setTimeout(function(){afficherBienvenue(name)},900);
     const logoutBtn=document.getElementById('homeLogoutBtn');
@@ -4730,7 +4736,7 @@ function changerCodeAdminUI(){
       btn.disabled=false; btn.textContent='Se connecter';
       if(remember){localStorage.setItem(KEY_NAME,name);localStorage.setItem(KEY_CODE,nouveau)}
       activerAccesProprietaire(name,nouveau);
-      unlock(name);
+      unlock(name,nouveau);
       alert('✅ Votre code personnel est enregistré. Le code 1234 est maintenant désactivé pour votre compte.');
     }).withFailureHandler(function(e){
       btn.disabled=false; btn.textContent='Se connecter';
@@ -4752,7 +4758,7 @@ function changerCodeAdminUI(){
       btn.disabled=false; btn.textContent='Se connecter';
       activerAccesProprietaire(name,code);
       setLoginAnimation(false);
-      unlock(name);
+      unlock(name,code);
       if(navigator.onLine){
         // Vérification serveur en arrière-plan, sans bloquer l'ouverture.
         setTimeout(function(){
@@ -4791,7 +4797,7 @@ function changerCodeAdminUI(){
       }
       if(remember){localStorage.setItem(KEY_NAME,name);localStorage.setItem(KEY_CODE,code)}
       activerAccesProprietaire(name,code);
-      unlock(name);
+      unlock(name,code);
     }).withFailureHandler(function(){
       btn.disabled=false; btn.textContent='Se connecter';
       if(remember && localStorage.getItem(KEY_NAME)===name){
@@ -4808,7 +4814,7 @@ function changerCodeAdminUI(){
     if(savedName && savedCode){
       activerAccesProprietaire(savedName,savedCode);
       setLoginAnimation(false);
-      unlock(savedName);
+      unlock(savedName,savedCode);
       setTimeout(function(){
         if(!navigator.onLine) return;
         try{
