@@ -34,7 +34,9 @@
     'enregistrerSortiesStock',
     'enregistrerDesinfection',
     'ajouterInformation',
-    'supprimerInformation'
+    'supprimerInformation',
+    'ajouterPublicationEquipe',
+    'ajouterCommentaireEquipe'
   ]);
 
   function openOfflineDB(){
@@ -2011,6 +2013,27 @@ button.settingsAction.secondary:hover,
 .sanNewsAdminNote>span{font-size:21px}
 .sanNewsAdminNote strong{display:block;margin-bottom:4px;color:#123f66}
 .sanNewsAdminNote p{margin:0}
+
+.sanNewsAuthor{display:block;margin-top:5px;color:#496b86;font-size:10px;font-weight:800}
+.sanNewsSocial{margin-top:13px;padding-top:11px;border-top:1px solid #edf2f6}
+.sanNewsSocialButtons{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.sanNewsReactBtn{border:1px solid #d8e5ee;border-radius:999px;padding:8px 11px;background:#f7fafc;color:#244965;font-size:11px;font-weight:900;cursor:pointer;touch-action:manipulation}
+.sanNewsReactBtn.active{border-color:#9dc8ef;background:#e4f2ff;color:#0758a5}
+.sanNewsReactBtn.love.active{border-color:#f4b8c1;background:#fff0f2;color:#be123c}
+.sanNewsReactBtn:disabled{opacity:.55;cursor:not-allowed}
+.sanNewsComments{margin-top:10px;border:1px solid #dfeaf2;border-radius:13px;background:#f8fbfd;overflow:hidden}
+.sanNewsComments summary{padding:10px 12px;color:#174366;font-size:11px;font-weight:900;cursor:pointer;list-style:none}
+.sanNewsComments summary::-webkit-details-marker{display:none}
+.sanNewsCommentList{display:grid;gap:8px;padding:0 10px 10px}
+.sanNewsComment{padding:9px 10px;border-radius:11px;background:#fff;border:1px solid #e7eef3}
+.sanNewsCommentHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px;color:#174366;font-size:10px;font-weight:900}
+.sanNewsCommentDate{color:#8797a5;font-size:9px;font-weight:500;text-align:right}
+.sanNewsCommentText{color:#405d73;font-size:11px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+.sanNewsCommentForm{display:grid;gap:7px;padding:0 10px 10px}
+.sanNewsCommentForm textarea{width:100%;min-height:54px;resize:vertical;border:1px solid #d3e2ec;border-radius:10px;padding:9px;font:inherit;font-size:12px;background:#fff;color:#163d5b}
+.sanNewsCommentSend{justify-self:end;border:0;border-radius:10px;padding:9px 13px;background:#0758a5;color:#fff;font-size:11px;font-weight:900;cursor:pointer}
+.sanNewsSocialStatus{font-size:10px;color:#6a8295;min-height:14px;margin-top:6px}
+.sanNewsLegacyNote{margin-top:12px;padding:8px 10px;border-radius:10px;background:#f0f4f7;color:#63798a;font-size:10px}
 .memoChoiceNews{background:linear-gradient(135deg,#fff 0%,#eef7ff 100%);border:1px solid #bfdbf0}
 .memoChoiceNews .memoChoiceIcon{display:grid;place-items:center;width:58px;height:58px;margin:0 auto 10px;border-radius:18px;background:#d8edff}
 @media(max-width:600px){
@@ -2332,7 +2355,7 @@ button.settingsAction.secondary:hover,
       <div class="sanNewsHeroIcon" aria-hidden="true">📣</div>
       <div class="sanNewsEyebrow">SANISTOCK • VIE D’ÉQUIPE</div>
       <h1>Actualités de l’équipe</h1>
-      <p>Les informations utiles, les nouveautés et les consignes au même endroit.</p>
+      <p>Posez vos questions, partagez vos idées et publiez les annonces utiles à toute l’équipe.</p>
       <button type="button" class="sanNewsRefresh" onclick="chargerActualitesEquipe(true)">↻ Actualiser les publications</button>
     </header>
     <div class="sanNewsPublishBar">
@@ -2358,7 +2381,7 @@ button.settingsAction.secondary:hover,
       </div>
       <div id="sanNewsPublishStatus" class="sanNewsPublishStatus" aria-live="polite"></div>
       <button type="button" class="sanNewsPublishSubmit" onclick="publierInformationUI()">Publier</button>
-      <p class="sanNewsPublishHint">Les publications sont envoyées au service SaniStock existant. Les autorisations sont contrôlées par le serveur.</p>
+      <p class="sanNewsPublishHint">Les publications, réactions et commentaires sont partagés avec toute l’équipe lorsque le téléphone est connecté.</p>
     </section>
     <div id="teamAnnouncementAdmin" class="sanNewsAdminTools" hidden>
       <details><summary>⚙️ Gérer les publications (responsable)</summary><div id="informationSettingsList" class="sanNewsAdminList">Chargement…</div></details>
@@ -2379,7 +2402,7 @@ button.settingsAction.secondary:hover,
     </div>
     <div class="sanNewsAdminNote">
       <span aria-hidden="true">📝</span>
-      <div><strong>Gardons les échanges utiles</strong><p>Privilégiez des messages clairs, respectueux et utiles à l’ensemble de l’équipe.</p></div>
+      <div><strong>Gardons les échanges utiles</strong><p>Questions, idées et annonces : échangez avec respect et évitez les informations confidentielles concernant les patients.</p></div>
     </div>
   </div>
 </section>
@@ -4057,27 +4080,40 @@ function normaliserActualites_(r){
   if(r && r.titre) return [r];
   return [];
 }
+function donneesSessionEquipe_(){
+  let salarie='',code='';
+  try{
+    salarie=String(localStorage.getItem('sanistock_employee_name')||'').trim();
+    code=String(localStorage.getItem('sanistock_employee_code')||'').trim();
+  }catch(e){}
+  return {salarie:salarie,code:code};
+}
+function equipeRequestId_(){
+  return 'equipe_'+Date.now()+'_'+Math.random().toString(36).slice(2,11);
+}
 function chargerActualitesEquipe(forcer){
   const feed=document.getElementById('sanNewsFeed');
   const status=document.getElementById('sanNewsStatus');
   if(!feed) return;
   if(status) status.textContent='';
-  feed.innerHTML='<div class="sanNewsLoading"><span class="sanNewsSpinner"></span> Chargement des actualités…</div>';
-
+  feed.innerHTML='<div class="sanNewsLoading"><span class="sanNewsSpinner"></span> Chargement des échanges…</div>';
+  const session=donneesSessionEquipe_();
   function afficherCache_(message){
     let cache=[];
     try{cache=JSON.parse(localStorage.getItem('sanistock_actualites_cache')||'[]');}catch(e){cache=[];}
     actualitesEquipeData_=Array.isArray(cache)?cache:[];
     actualitesEquipeModeHorsLigne_=true;
-    if(status) status.textContent=message||'Mode hors connexion • dernières actualités enregistrées sur cet appareil.';
+    if(status) status.textContent=message||'Hors connexion • les réactions et commentaires nécessitent une connexion.';
     rendreActualitesEquipe_();
   }
-
-  if(!navigator.onLine || !gsDisponible()){
-    afficherCache_('Hors connexion • affichage des dernières actualités mises en cache sur cet appareil.');
+  if(!session.salarie || !session.code){
+    feed.innerHTML='<div class="sanNewsError"><span class="sanNewsEmptyIcon">🔐</span><strong>Connexion nécessaire</strong><br>Reconnectez-vous à SaniStock pour publier, réagir et commenter avec votre compte salarié.</div>';
     return;
   }
-
+  if(!navigator.onLine || !gsDisponible()){
+    afficherCache_('Hors connexion • les publications sont consultables depuis le cache, mais les réactions ne sont pas disponibles.');
+    return;
+  }
   google.script.run.withSuccessHandler(function(r){
     actualitesEquipeData_=normaliserActualites_(r);
     actualitesEquipeModeHorsLigne_=false;
@@ -4089,14 +4125,16 @@ function chargerActualitesEquipe(forcer){
     if(cache.length){
       actualitesEquipeData_=cache;
       actualitesEquipeModeHorsLigne_=true;
-      if(status) status.textContent='Connexion indisponible • affichage des dernières actualités enregistrées.';
+      if(status) status.textContent='Connexion indisponible • affichage des derniers échanges enregistrés sur cet appareil.';
       rendreActualitesEquipe_();
     }else{
-      feed.innerHTML='<div class="sanNewsError"><span class="sanNewsEmptyIcon">⚠️</span><strong>Actualités indisponibles</strong><br>'+escapeHtml(err&&err.message?err.message:'Impossible de récupérer les informations.')+'</div>';
+      feed.innerHTML='<div class="sanNewsError"><span class="sanNewsEmptyIcon">⚠️</span><strong>Échanges indisponibles</strong><br>'+escapeHtml(err&&err.message?err.message:'Impossible de récupérer les publications.')+'</div>';
     }
-  }).getInformations(null,false);
+  }).getPublicationsEquipe(session);
 }
 function typePublicationEquipe_(r){
+  const explicite=String((r&&r.type)||'').toLowerCase();
+  if(['question','idee','annonce'].indexOf(explicite)>=0) return explicite;
   const titre=String((r&&r.titre)||'').trim();
   if(/^\[(QUESTION|QUESTIONS)\]/i.test(titre) || /^QUESTION\s*[-—:]/i.test(titre)) return 'question';
   if(/^\[(ID[ÉE]E|IDEA)\]/i.test(titre) || /^ID[ÉE]E\s*[-—:]/i.test(titre)) return 'idee';
@@ -4116,35 +4154,84 @@ function rendreActualitesEquipe_(){
   const feed=document.getElementById('sanNewsFeed');
   const status=document.getElementById('sanNewsStatus');
   if(!feed) return;
-  const lus=idsActualitesLues_();
   let rows=actualitesEquipeData_.slice();
-  rows.sort(function(a,b){return Number(b.id||0)-Number(a.id||0);});
-  if(actualitesEquipeFiltre_!=='all'){
-    rows=rows.filter(function(r){return typePublicationEquipe_(r)===actualitesEquipeFiltre_;});
-  }
-  if(status && !actualitesEquipeModeHorsLigne_) status.textContent=rows.length+' actualité(s) affichée(s).';
+  rows.sort(function(a,b){return Number(b.timestamp||0)-Number(a.timestamp||0)||Number(b.id||0)-Number(a.id||0);});
+  if(actualitesEquipeFiltre_!=='all') rows=rows.filter(function(r){return typePublicationEquipe_(r)===actualitesEquipeFiltre_;});
+  if(status && !actualitesEquipeModeHorsLigne_) status.textContent=rows.length+' publication(s) • questions, idées et annonces partagées.';
   if(!rows.length){
-    feed.innerHTML='<div class="sanNewsEmpty"><span class="sanNewsEmptyIcon">📰</span><strong>Aucune actualité dans cette catégorie</strong><br>Les prochaines informations publiées apparaîtront ici.</div>';
+    feed.innerHTML='<div class="sanNewsEmpty"><span class="sanNewsEmptyIcon">🤝</span><strong>L’espace d’équipe est prêt !</strong><br>Publiez la première question, idée ou annonce.</div>';
     return;
   }
+  const offline=actualitesEquipeModeHorsLigne_;
   feed.innerHTML=rows.map(function(r){
     const p=['urgent','important'].includes(String(r.priorite||'info'))?String(r.priorite):'info';
     const type=typePublicationEquipe_(r);
-    const id=String(r.id||'');
-    const isRead=id && lus.indexOf(id)>=0;
+    const id=Number(r.id||0);
+    const legacy=!!r.legacy || id<0;
+    const titre=titrePublicationEquipe_(r);
+    const auteur=String(r.auteur||'Équipe SaniStock');
+    const date=String(r.date||'');
     const badge=type==='question'?'💬 QUESTION':type==='idee'?'💡 IDÉE':(p==='urgent'?'🔴 ANNONCE URGENTE':p==='important'?'🟠 ANNONCE IMPORTANTE':'📣 ANNONCE');
     const icon=type==='question'?'💬':type==='idee'?'💡':(p==='urgent'?'🚨':p==='important'?'📌':'📣');
     const classes='sanNewsCard'+(p==='urgent'?' isUrgent':'')+(p==='important'?' isImportant':'');
     const expiration=String(r.expiration||'').trim();
-    const readButton=id
-      ? '<button type="button" class="sanNewsReadBtn '+(isRead?'read':'')+'" onclick="marquerActualiteEquipeLue('+Number(id)+')">'+(isRead?'✓ Lu sur cet appareil':'✓ J’ai lu')+'</button>'
-      : '<span class="sanNewsReadHint">Information SaniStock</span>';
+    const comments=Array.isArray(r.commentaires)?r.commentaires:[];
+    const commentCount=Number(r.commentaireCount||comments.length||0);
+    const likes=Number(r.likes||0), loves=Number(r.loves||0);
+    const mine=String(r.maReaction||'');
+    const canInteract=!legacy && !offline && id>0;
+    let social='';
+    if(canInteract){
+      const commentItems=comments.length?comments.map(function(c){
+        return '<div class="sanNewsComment"><div class="sanNewsCommentHead"><span>'+escapeHtml(c.auteur||'Salarié')+'</span><span class="sanNewsCommentDate">'+escapeHtml(c.date||'')+'</span></div><div class="sanNewsCommentText">'+escapeHtml(c.message||'')+'</div></div>';
+      }).join(''):'<div class="sanNewsReadHint" style="padding:3px 2px 8px">Pas encore de commentaire. Lancez la discussion !</div>';
+      social='<div class="sanNewsSocial">'
+        +'<div class="sanNewsSocialButtons">'
+        +'<button type="button" class="sanNewsReactBtn '+(mine==='like'?'active':'')+'" onclick="basculerReactionEquipeUI('+id+',\'like\')" '+(offline?'disabled':'')+'>👍 J’aime · '+likes+'</button>'
+        +'<button type="button" class="sanNewsReactBtn love '+(mine==='love'?'active':'')+'" onclick="basculerReactionEquipeUI('+id+',\'love\')" '+(offline?'disabled':'')+'>❤️ · '+loves+'</button>'
+        +'</div>'
+        +'<details class="sanNewsComments"><summary>💬 Commentaires ('+commentCount+')</summary>'
+        +'<div class="sanNewsCommentList">'+commentItems+'</div>'
+        +'<div class="sanNewsCommentForm"><textarea id="sanNewsCommentInput_'+id+'" maxlength="500" rows="2" placeholder="Écrire une réponse…" '+(offline?'disabled':'')+'></textarea><button type="button" class="sanNewsCommentSend" onclick="ajouterCommentaireEquipeUI('+id+')" '+(offline?'disabled':'')+'>Envoyer le commentaire</button></div>'
+        +'</details><div id="sanNewsSocialStatus_'+id+'" class="sanNewsSocialStatus" aria-live="polite"></div></div>';
+    } else if(legacy){
+      social='<div class="sanNewsLegacyNote">📌 Ancienne annonce SaniStock publiée par le responsable.</div>';
+    } else {
+      social='<div class="sanNewsLegacyNote">📵 Reconnectez-vous pour aimer et commenter. Les interactions sont partagées avec toute l’équipe.</div>';
+    }
     return '<article class="'+classes+'">'
-      +'<div class="sanNewsCardHead"><span class="sanNewsSymbol" aria-hidden="true">'+icon+'</span><div class="sanNewsCardMeta"><span class="sanNewsBadge '+p+'">'+badge+'</span><span class="sanNewsDate">'+(isRead?'Consultée sur cet appareil':(type==='question'?'Question de l’équipe':type==='idee'?'Idée de l’équipe':'Annonce de l’équipe'))+'</span></div></div>'
-      +'<div class="sanNewsCardBody"><h2 class="sanNewsTitle">'+escapeHtml(titrePublicationEquipe_(r))+'</h2><p class="sanNewsMessage">'+escapeHtml(r.message||'')+'</p>'
+      +'<div class="sanNewsCardHead"><span class="sanNewsSymbol" aria-hidden="true">'+icon+'</span><div class="sanNewsCardMeta"><span class="sanNewsBadge '+p+'">'+badge+'</span><span class="sanNewsAuthor">'+escapeHtml(auteur)+'</span><span class="sanNewsDate">'+escapeHtml(date)+'</span></div></div>'
+      +'<div class="sanNewsCardBody"><h2 class="sanNewsTitle">'+escapeHtml(titre)+'</h2><p class="sanNewsMessage">'+escapeHtml(r.message||'')+'</p>'
       +(expiration?'<div class="sanNewsExpiry">À consulter avant le : '+escapeHtml(expiration)+'</div>':'')
-      +'<div class="sanNewsCardActions">'+readButton+'<span class="sanNewsReadHint">'+(isRead?'Merci pour votre lecture':'Prenez connaissance du message')+'</span></div></div></article>';
+      +social+'</div></article>';
   }).join('');
+}
+
+function basculerReactionEquipeUI(id,reaction){
+  if(!navigator.onLine){alert('📵 Connectez-vous pour enregistrer une réaction partagée avec l’équipe.');return;}
+  const session=donneesSessionEquipe_();
+  if(!session.salarie||!session.code){alert('Reconnectez-vous à SaniStock pour réagir.');return;}
+  const status=document.getElementById('sanNewsSocialStatus_'+id);
+  if(status)status.textContent='Enregistrement de la réaction…';
+  google.script.run.withSuccessHandler(function(){chargerActualitesEquipe(true);})
+    .withFailureHandler(function(err){if(status)status.textContent='Impossible d’enregistrer : '+(err&&err.message?err.message:err);})
+    .basculerReactionEquipe(Object.assign(session,{publicationId:id,reaction:reaction}));
+}
+
+function ajouterCommentaireEquipeUI(id){
+  const input=document.getElementById('sanNewsCommentInput_'+id);
+  const message=String(input&&input.value||'').trim();
+  const status=document.getElementById('sanNewsSocialStatus_'+id);
+  if(!message){if(status)status.textContent='Écrivez un commentaire avant de l’envoyer.';return;}
+  const session=donneesSessionEquipe_();
+  if(!session.salarie||!session.code){if(status)status.textContent='Reconnectez-vous à SaniStock pour commenter.';return;}
+  if(status)status.textContent='Envoi du commentaire…';
+  google.script.run.withSuccessHandler(function(res){
+    if(input)input.value='';
+    if(res&&res.offline){if(status)status.textContent='📵 Commentaire enregistré sur ce téléphone ; il sera partagé au retour de la connexion.';return;}
+    chargerActualitesEquipe(true);
+  }).withFailureHandler(function(err){if(status)status.textContent='Impossible d’envoyer le commentaire : '+(err&&err.message?err.message:err);})
+    .ajouterCommentaireEquipe(Object.assign(session,{publicationId:id,message:message,requestId:equipeRequestId_()}));
 }
 function marquerActualiteEquipeLue(id){
   id=String(id||'');
@@ -4206,33 +4293,30 @@ function publierInformationUI(){
   const type=(document.getElementById('infoType')?.value||'annonce');
   const priorite=(document.getElementById('infoPriorite')?.value||'info');
   const expiration=(document.getElementById('infoExpiration')?.value||'');
-  if(!titre || !message){ alert('⚠️ Le titre et le message sont obligatoires.'); return; }
-  if(!gsDisponible()){const s=document.getElementById('sanNewsPublishStatus');if(s)s.textContent='Connexion au service SaniStock indisponible. Réessayez lorsque la connexion sera rétablie.';return;}
-  const statusEl=document.getElementById('sanNewsPublishStatus');if(statusEl)statusEl.textContent='Publication en cours…';
-  const prefix=type==='question'?'[QUESTION] ':type==='idee'?'[IDÉE] ':'[ANNONCE] ';
-  const titreEnregistre=prefix+titre.replace(/^\[(QUESTION|QUESTIONS|ID[ÉE]E|IDEA|ANNONCE)\]\s*/i,'').replace(/^(QUESTION|ID[ÉE]E|ANNONCE)\s*[-—:]\s*/i,'').trim();
-  messageParametres('Publication en cours…',true);
-  google.script.run.withSuccessHandler(function(){
-    document.getElementById('infoTitre').value='';
-    document.getElementById('infoMessage').value='';
+  const statusEl=document.getElementById('sanNewsPublishStatus');
+  if(!titre||!message){if(statusEl)statusEl.textContent='Le titre et le message sont obligatoires.';return;}
+  const session=donneesSessionEquipe_();
+  if(!session.salarie||!session.code){if(statusEl)statusEl.textContent='Reconnectez-vous à SaniStock pour publier avec votre compte salarié.';return;}
+  if(!navigator.onLine){if(statusEl)statusEl.textContent='📵 Publication enregistrée en attente de synchronisation si le mode hors ligne est actif.';}
+  else if(statusEl)statusEl.textContent='Publication en cours…';
+  const btn=document.querySelector('.sanNewsPublishSubmit');
+  if(btn){btn.disabled=true;btn.textContent='Publication…';}
+  const titreEnregistre=titre.replace(/^\[(QUESTION|QUESTIONS|ID[ÉE]E|IDEA|ANNONCE)\]\s*/i,'').replace(/^(QUESTION|ID[ÉE]E|ANNONCE)\s*[-—:]\s*/i,'').trim();
+  google.script.run.withSuccessHandler(function(res){
+    if(document.getElementById('infoTitre'))document.getElementById('infoTitre').value='';
+    if(document.getElementById('infoMessage'))document.getElementById('infoMessage').value='';
     const typeEl=document.getElementById('infoType');if(typeEl)typeEl.value='annonce';
     const prioriteEl=document.getElementById('infoPriorite');if(prioriteEl)prioriteEl.value='info';
     const expirationEl=document.getElementById('infoExpiration');if(expirationEl)expirationEl.value='';
     togglePublicationEquipe(false);
-    if(statusEl)statusEl.textContent='✅ Publication enregistrée.';
-    fermerInformationAccueilSilencieux();
-    chargerInformationsUI();
-    chargerActualitesEquipe(true);
-    setTimeout(function(){
-      const el=document.getElementById('settingsMsg');
-      if(el){ el.textContent=''; el.classList.remove('show'); }
-    },3000);
+    if(statusEl)statusEl.textContent=(res&&res.offline)?'📵 Publication enregistrée sur ce téléphone ; elle sera partagée au retour de la connexion.':'✅ Publication partagée avec l’équipe.';
+    if(!(res&&res.offline))chargerActualitesEquipe(true);
+    if(btn){btn.disabled=false;btn.textContent='Publier';}
   }).withFailureHandler(function(err){
-    const messageErreur='Impossible de publier : '+(err&&err.message?err.message:err)+' . Vérifiez les droits de publication.';
-    if(statusEl)statusEl.textContent=messageErreur;
-  }).ajouterInformation(Object.assign(donneesAccesGestion(),{titre:titreEnregistre,message:message,priorite:priorite,expiration:expiration}));
+    if(statusEl)statusEl.textContent='Impossible de publier : '+(err&&err.message?err.message:err);
+    if(btn){btn.disabled=false;btn.textContent='Publier';}
+  }).ajouterPublicationEquipe(Object.assign(session,{titre:titreEnregistre,message:message,type:type,priorite:priorite,expiration:expiration,requestId:equipeRequestId_()}));
 }
-
 function supprimerInformationUI(id){
   if(!confirm('Supprimer cette information ?')) return;
   google.script.run.withSuccessHandler(function(){
@@ -4243,6 +4327,12 @@ function supprimerInformationUI(id){
   }).withFailureHandler(function(err){ alert('Erreur : '+(err&&err.message?err.message:err)); })
     .supprimerInformation(Object.assign(donneesAccesGestion(),{id:id}));
 }
+
+
+window.addEventListener('sanistock-sync-complete',function(){
+  const page=document.getElementById('newsPage');
+  if(page&&page.classList.contains('active')) chargerActualitesEquipe(true);
+});
 
 function chargerInformationAccueil(){
   // Les informations ne s’affichent plus en popup au démarrage. Elles sont consultables dans « Esprit d’équipe ».
