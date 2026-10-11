@@ -1,6 +1,6 @@
 <!-- TAXI PDF FINAL - VALISE NOIR COORDONNEES SEPAREES -->
 <!-- TAXI PDF FINAL INTEGRE : taxi_template(3).pdf -->
-<!-- SaniStock version 1.1.60 : Bonjour prénom + une seule version en bas -->
+<!-- SaniStock : Esprit d’équipe avec Questions / Idées / Annonces; popups d’annonce au démarrage supprimées -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -1946,6 +1946,20 @@ button.settingsAction.secondary:hover,
 #checklistAmbulanceDetail .ambSectionBulkActions .toutCocherBtn{flex:1 1 0;margin:0;min-height:38px}
 </style>
 <style>
+/* Publication au sein de l'espace Esprit d'équipe */
+.sanNewsPublishBar{margin:12px 0}
+.sanNewsPublishButton{width:100%;border:0;border-radius:14px;padding:14px 16px;background:#0758a5;color:#fff;font-size:14px;font-weight:900;box-shadow:0 5px 14px rgba(7,88,165,.2);cursor:pointer;touch-action:manipulation}
+.sanNewsPublishButton:active,.sanNewsPublishSubmit:active{transform:scale(.99)}
+.sanNewsPublishPanel{margin:10px 0 14px;padding:16px;border:1px solid #cfe1ef;border-radius:18px;background:#fff;box-shadow:0 5px 18px rgba(20,60,90,.07)}
+.sanNewsPublishPanel[hidden]{display:none!important}
+.sanNewsPublishHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;color:#082e53;font-size:16px}
+.sanNewsCancel{border:0;border-radius:10px;width:34px;height:34px;background:#eef4f8;color:#284a67;font-size:17px}
+.sanNewsPublishPanel label{display:block;margin:12px 0 6px;color:#244a68;font-size:12px;font-weight:900}
+.sanNewsFormControl{display:block;width:100%;min-height:43px;border:1px solid #d0dfeb;border-radius:11px;padding:10px 12px;background:#fff;color:#173f60;font:inherit;font-size:14px}
+.sanNewsPublishPanel textarea{resize:vertical;min-height:105px}
+.sanNewsPublishSubmit{width:100%;margin-top:14px;border:0;border-radius:12px;padding:13px;background:#15934b;color:#fff;font-weight:900;font-size:14px}
+.sanNewsPublishHint{font-size:10px;line-height:1.45;color:#75899a;margin:10px 0 0}
+#settingsTabInformations{display:none!important}
 /* ===== ACTUALITÉS ÉQUIPE — MOBILE FIRST ===== */
 .sanNewsPage{padding:14px 12px 30px!important;background:linear-gradient(180deg,#eaf4fb 0,#f7fafc 230px)!important;min-height:100vh}
 .sanNewsWrap{width:min(100%,680px);margin:0 auto;padding:8px 0 20px}
@@ -2070,7 +2084,6 @@ button.settingsAction.secondary:hover,
       <button id="settingsTabVehicules" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('vehicules')">🚑 Véhicules</button>
       <button id="settingsTabChecklist" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('checklist')">✅ CHECK-LIST</button>
       <button id="settingsTabDashboard" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('dashboard')">📊 Tableau de bord</button>
-      <button id="settingsTabInformations" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('informations')">📢 Informations</button>
       <button id="settingsTabDocuments" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('documents')">📄 Documents</button>
     </div>
 
@@ -2137,24 +2150,6 @@ button.settingsAction.secondary:hover,
       </div>
     </section>
 
-    <section id="settingsPaneInformations" class="settingsPane" role="tabpanel" hidden>
-      <div class="settingsPaneHead">
-        <div><strong>📢 Informations</strong><span>Publier un message visible par les salariés sur l’accueil.</span></div>
-      </div>
-      <div class="infoForm">
-        <input id="infoTitre" type="text" maxlength="80" placeholder="Titre de l'information">
-        <textarea id="infoMessage" maxlength="500" placeholder="Message à afficher aux salariés"></textarea>
-        <select id="infoPriorite">
-          <option value="info">🔵 Information</option>
-          <option value="important">🟠 Important</option>
-          <option value="urgent">🔴 Urgent</option>
-        </select>
-        <input id="infoExpiration" type="date" aria-label="Date d'expiration">
-        <button class="settingsAction" type="button" onclick="publierInformationUI()">📢 Publier l'information</button>
-        <button class="settingsAction secondary" type="button" onclick="reinitialiserLectureInformationAdmin()">🔄 Réafficher le message sur mon appareil</button>
-      </div>
-      <div id="informationSettingsList"></div>
-    </section>
 
     <section id="settingsPaneDocuments" class="settingsPane" role="tabpanel" hidden>
       <div class="settingsPaneHead">
@@ -2338,17 +2333,45 @@ button.settingsAction.secondary:hover,
       <div class="sanNewsEyebrow">SANISTOCK • VIE D’ÉQUIPE</div>
       <h1>Actualités de l’équipe</h1>
       <p>Les informations utiles, les nouveautés et les consignes au même endroit.</p>
-      <button type="button" class="sanNewsRefresh" onclick="chargerActualitesEquipe(true)">↻ Actualiser les actualités</button>
+      <button type="button" class="sanNewsRefresh" onclick="chargerActualitesEquipe(true)">↻ Actualiser les publications</button>
     </header>
-    <div class="sanNewsTip">
-      <span class="sanNewsTipIcon" aria-hidden="true">💡</span>
-      <div><strong>Le saviez-vous ?</strong><span>Les annonces publiées par le responsable apparaissent ici. Pensez à consulter les messages importants.</span></div>
+    <div class="sanNewsPublishBar">
+      <button type="button" class="sanNewsPublishButton" onclick="togglePublicationEquipe()">＋ Nouvelle publication</button>
     </div>
-    <nav class="sanNewsFilters" aria-label="Filtrer les actualités">
+    <section id="sanNewsPublishPanel" class="sanNewsPublishPanel" hidden aria-label="Nouvelle publication">
+      <div class="sanNewsPublishHead"><strong>Partager avec l’équipe</strong><button type="button" class="sanNewsCancel" onclick="togglePublicationEquipe(false)" aria-label="Fermer">✕</button></div>
+      <label for="infoType">Type de publication</label>
+      <select id="infoType" class="sanNewsFormControl">
+        <option value="annonce">📣 Annonce</option>
+        <option value="question">💬 Question</option>
+        <option value="idee">💡 Idée</option>
+      </select>
+      <label for="infoTitre">Titre</label>
+      <input id="infoTitre" class="sanNewsFormControl" type="text" maxlength="80" placeholder="Donnez un titre clair">
+      <label for="infoMessage">Message</label>
+      <textarea id="infoMessage" class="sanNewsFormControl" maxlength="500" rows="4" placeholder="Écrivez votre message…"></textarea>
+      <div id="sanNewsAnnouncementOptions">
+        <label for="infoPriorite">Priorité de l’annonce</label>
+        <select id="infoPriorite" class="sanNewsFormControl"><option value="info">🔵 Information</option><option value="important">🟠 Important</option><option value="urgent">🔴 Urgent</option></select>
+        <label for="infoExpiration">Date d’expiration (facultatif)</label>
+        <input id="infoExpiration" class="sanNewsFormControl" type="date">
+      </div>
+      <div id="sanNewsPublishStatus" class="sanNewsPublishStatus" aria-live="polite"></div>
+      <button type="button" class="sanNewsPublishSubmit" onclick="publierInformationUI()">Publier</button>
+      <p class="sanNewsPublishHint">Les publications sont envoyées au service SaniStock existant. Les autorisations sont contrôlées par le serveur.</p>
+    </section>
+    <div id="teamAnnouncementAdmin" class="sanNewsAdminTools" hidden>
+      <details><summary>⚙️ Gérer les publications (responsable)</summary><div id="informationSettingsList" class="sanNewsAdminList">Chargement…</div></details>
+    </div>
+    <div class="sanNewsTip">
+      <span class="sanNewsTipIcon" aria-hidden="true">🤝</span>
+      <div><strong>Un espace pour toute l’équipe</strong><span>Partagez une annonce, posez une question ou proposez une idée au même endroit.</span></div>
+    </div>
+    <nav class="sanNewsFilters" aria-label="Filtrer les publications">
       <button type="button" class="sanNewsFilter active" data-news-filter="all" onclick="filtrerActualitesEquipe('all',this)">Toutes</button>
-      <button type="button" class="sanNewsFilter" data-news-filter="urgent" onclick="filtrerActualitesEquipe('urgent',this)">🔴 Urgentes</button>
-      <button type="button" class="sanNewsFilter" data-news-filter="important" onclick="filtrerActualitesEquipe('important',this)">🟠 Importantes</button>
-      <button type="button" class="sanNewsFilter" data-news-filter="info" onclick="filtrerActualitesEquipe('info',this)">🔵 Informations</button>
+      <button type="button" class="sanNewsFilter" data-news-filter="question" onclick="filtrerActualitesEquipe('question',this)">💬 Questions</button>
+      <button type="button" class="sanNewsFilter" data-news-filter="idee" onclick="filtrerActualitesEquipe('idee',this)">💡 Idées</button>
+      <button type="button" class="sanNewsFilter" data-news-filter="annonce" onclick="filtrerActualitesEquipe('annonce',this)">📣 Annonces</button>
     </nav>
     <div id="sanNewsStatus" class="sanNewsStatus" aria-live="polite"></div>
     <div id="sanNewsFeed" class="sanNewsFeed">
@@ -2356,7 +2379,7 @@ button.settingsAction.secondary:hover,
     </div>
     <div class="sanNewsAdminNote">
       <span aria-hidden="true">📝</span>
-      <div><strong>Une information à partager ?</strong><p>Le responsable peut publier et gérer les annonces depuis Paramètres → Informations.</p></div>
+      <div><strong>Gardons les échanges utiles</strong><p>Privilégiez des messages clairs, respectueux et utiles à l’ensemble de l’équipe.</p></div>
     </div>
   </div>
 </section>
@@ -2611,7 +2634,7 @@ function showPage(id){
 
  window.scrollTo(0,0);
  if(id==='stockPage') chargerStock();
- if(id==='newsPage' && typeof chargerActualitesEquipe==='function') chargerActualitesEquipe();
+ if(id==='newsPage' && typeof chargerActualitesEquipe==='function'){ chargerActualitesEquipe(); if(typeof actualiserOutilsPublicationEquipe==='function') actualiserOutilsPublicationEquipe(); }
  if(id==='medicationPage') setTimeout(function(){ if(typeof renderMedicationMemo==='function') renderMedicationMemo(); },0);
 
  setTimeout(function(){
@@ -3831,6 +3854,7 @@ function actualiserParametresAChaqueOuverture(){
 }
 
 function ouvrirOngletParametres(onglet){
+  if(onglet==='informations') onglet='salaries';
   const sal=document.getElementById('settingsPaneSalaries');
   const veh=document.getElementById('settingsPaneVehicules');
   const dash=document.getElementById('settingsPaneDashboard');
@@ -3838,7 +3862,7 @@ function ouvrirOngletParametres(onglet){
   const tv=document.getElementById('settingsTabVehicules');
   const td=document.getElementById('settingsTabDashboard');
   const tc=document.getElementById('settingsTabChecklist');
-  const ti=document.getElementById('settingsTabInformations');
+  const ti=null; // L’ancien onglet Informations a été remplacé par « Esprit d’équipe ».
   const tdoc=document.getElementById('settingsTabDocuments');
   const tdate=document.getElementById('settingsTabDates');
   const paneDate=document.getElementById('settingsPaneDates');
@@ -3848,7 +3872,7 @@ function ouvrirOngletParametres(onglet){
   const isVeh=onglet==='vehicules';
   const isDash=onglet==='dashboard';
   const isChecklist=onglet==='checklist';
-  const isInfo=onglet==='informations';
+  const isInfo=false;
   const isDocs=onglet==='documents';
 
   sal.hidden=!isSal;
@@ -3856,7 +3880,6 @@ function ouvrirOngletParametres(onglet){
   veh.hidden=!isVeh;
   dash.hidden=!isDash;
   document.getElementById('settingsPaneChecklist').hidden=!isChecklist;
-  document.getElementById('settingsPaneInformations').hidden=!isInfo;
   document.getElementById('settingsPaneDocuments').hidden=!isDocs;
 
   ts.classList.toggle('active',isSal);
@@ -3864,7 +3887,6 @@ function ouvrirOngletParametres(onglet){
   tv.classList.toggle('active',isVeh);
   td.classList.toggle('active',isDash);
   tc.classList.toggle('active',isChecklist);
-  ti.classList.toggle('active',isInfo);
   tdoc.classList.toggle('active',isDocs);
 
   ts.setAttribute('aria-selected',String(isSal));
@@ -3872,7 +3894,6 @@ function ouvrirOngletParametres(onglet){
   tv.setAttribute('aria-selected',String(isVeh));
   td.setAttribute('aria-selected',String(isDash));
   tc.setAttribute('aria-selected',String(isChecklist));
-  ti.setAttribute('aria-selected',String(isInfo));
   tdoc.setAttribute('aria-selected',String(isDocs));
 
   if(isSal) chargerGestionSalaries();
@@ -3880,7 +3901,6 @@ function ouvrirOngletParametres(onglet){
   else if(isVeh) chargerGestionVehicules();
   else if(isDash) chargerTableauBord();
   else if(isChecklist) chargerGestionChecklist();
-  else if(isInfo) chargerInformationsUI();
   else if(isDocs) chargerDocuments();
 }
 
@@ -4076,6 +4096,15 @@ function chargerActualitesEquipe(forcer){
     }
   }).getInformations(null,false);
 }
+function typePublicationEquipe_(r){
+  const titre=String((r&&r.titre)||'').trim();
+  if(/^\[(QUESTION|QUESTIONS)\]/i.test(titre) || /^QUESTION\s*[-—:]/i.test(titre)) return 'question';
+  if(/^\[(ID[ÉE]E|IDEA)\]/i.test(titre) || /^ID[ÉE]E\s*[-—:]/i.test(titre)) return 'idee';
+  return 'annonce';
+}
+function titrePublicationEquipe_(r){
+  return String((r&&r.titre)||'Information sans titre').replace(/^\[(QUESTION|QUESTIONS|ID[ÉE]E|IDEA|ANNONCE)\]\s*/i,'').replace(/^(QUESTION|ID[ÉE]E|ANNONCE)\s*[-—:]\s*/i,'').trim() || 'Publication sans titre';
+}
 function filtrerActualitesEquipe(filtre,btn){
   actualitesEquipeFiltre_=String(filtre||'all');
   document.querySelectorAll('.sanNewsFilter').forEach(function(b){
@@ -4091,7 +4120,7 @@ function rendreActualitesEquipe_(){
   let rows=actualitesEquipeData_.slice();
   rows.sort(function(a,b){return Number(b.id||0)-Number(a.id||0);});
   if(actualitesEquipeFiltre_!=='all'){
-    rows=rows.filter(function(r){return String(r.priorite||'info')===actualitesEquipeFiltre_;});
+    rows=rows.filter(function(r){return typePublicationEquipe_(r)===actualitesEquipeFiltre_;});
   }
   if(status && !actualitesEquipeModeHorsLigne_) status.textContent=rows.length+' actualité(s) affichée(s).';
   if(!rows.length){
@@ -4100,18 +4129,19 @@ function rendreActualitesEquipe_(){
   }
   feed.innerHTML=rows.map(function(r){
     const p=['urgent','important'].includes(String(r.priorite||'info'))?String(r.priorite):'info';
+    const type=typePublicationEquipe_(r);
     const id=String(r.id||'');
     const isRead=id && lus.indexOf(id)>=0;
-    const badge=p==='urgent'?'🔴 URGENT':p==='important'?'🟠 IMPORTANT':'🔵 INFORMATION';
-    const icon=p==='urgent'?'🚨':p==='important'?'📌':'📣';
+    const badge=type==='question'?'💬 QUESTION':type==='idee'?'💡 IDÉE':(p==='urgent'?'🔴 ANNONCE URGENTE':p==='important'?'🟠 ANNONCE IMPORTANTE':'📣 ANNONCE');
+    const icon=type==='question'?'💬':type==='idee'?'💡':(p==='urgent'?'🚨':p==='important'?'📌':'📣');
     const classes='sanNewsCard'+(p==='urgent'?' isUrgent':'')+(p==='important'?' isImportant':'');
     const expiration=String(r.expiration||'').trim();
     const readButton=id
       ? '<button type="button" class="sanNewsReadBtn '+(isRead?'read':'')+'" onclick="marquerActualiteEquipeLue('+Number(id)+')">'+(isRead?'✓ Lu sur cet appareil':'✓ J’ai lu')+'</button>'
       : '<span class="sanNewsReadHint">Information SaniStock</span>';
     return '<article class="'+classes+'">'
-      +'<div class="sanNewsCardHead"><span class="sanNewsSymbol" aria-hidden="true">'+icon+'</span><div class="sanNewsCardMeta"><span class="sanNewsBadge '+p+'">'+badge+'</span><span class="sanNewsDate">'+(isRead?'Consultée sur cet appareil':'Information de l’équipe')+'</span></div></div>'
-      +'<div class="sanNewsCardBody"><h2 class="sanNewsTitle">'+escapeHtml(r.titre||'Information sans titre')+'</h2><p class="sanNewsMessage">'+escapeHtml(r.message||'')+'</p>'
+      +'<div class="sanNewsCardHead"><span class="sanNewsSymbol" aria-hidden="true">'+icon+'</span><div class="sanNewsCardMeta"><span class="sanNewsBadge '+p+'">'+badge+'</span><span class="sanNewsDate">'+(isRead?'Consultée sur cet appareil':(type==='question'?'Question de l’équipe':type==='idee'?'Idée de l’équipe':'Annonce de l’équipe'))+'</span></div></div>'
+      +'<div class="sanNewsCardBody"><h2 class="sanNewsTitle">'+escapeHtml(titrePublicationEquipe_(r))+'</h2><p class="sanNewsMessage">'+escapeHtml(r.message||'')+'</p>'
       +(expiration?'<div class="sanNewsExpiry">À consulter avant le : '+escapeHtml(expiration)+'</div>':'')
       +'<div class="sanNewsCardActions">'+readButton+'<span class="sanNewsReadHint">'+(isRead?'Merci pour votre lecture':'Prenez connaissance du message')+'</span></div></div></article>';
   }).join('');
@@ -4125,6 +4155,33 @@ function marquerActualiteEquipeLue(id){
   try{localStorage.setItem(key,JSON.stringify(lus));}catch(e){}
   if(typeof fermerInformationAccueilSilencieux==='function') fermerInformationAccueilSilencieux();
   rendreActualitesEquipe_();
+}
+
+function togglePublicationEquipe(force){
+  const panel=document.getElementById('sanNewsPublishPanel');
+  if(!panel) return;
+  const ouvrir=typeof force==='boolean'?force:panel.hidden;
+  panel.hidden=!ouvrir;
+  if(ouvrir){
+    const type=document.getElementById('infoType');
+    const priorite=document.getElementById('infoPriorite');
+    const expiration=document.getElementById('infoExpiration');
+    const options=document.getElementById('sanNewsAnnouncementOptions');
+    function majOptions(){
+      const isAnnonce=!type||type.value==='annonce';
+      if(options) options.style.display=isAnnonce?'block':'none';
+    }
+    if(type && !type.dataset.bound){type.addEventListener('change',majOptions);type.dataset.bound='1';}
+    majOptions();
+    setTimeout(function(){const el=document.getElementById('infoTitre');if(el)el.focus();},40);
+  }
+}
+
+function actualiserOutilsPublicationEquipe(){
+  const wrap=document.getElementById('teamAnnouncementAdmin');
+  const isAdmin=typeof appareilProprietaire==='function' && appareilProprietaire();
+  if(wrap) wrap.hidden=!isAdmin;
+  if(isAdmin) chargerInformationsUI();
 }
 
 function chargerInformationsUI(){
@@ -4144,28 +4201,36 @@ function chargerInformationsUI(){
 }
 
 function publierInformationUI(){
-  const titre=(document.getElementById('infoTitre').value||'').trim();
-  const message=(document.getElementById('infoMessage').value||'').trim();
-  const priorite=document.getElementById('infoPriorite').value;
-  const expiration=document.getElementById('infoExpiration').value||'';
+  const titre=(document.getElementById('infoTitre')?.value||'').trim();
+  const message=(document.getElementById('infoMessage')?.value||'').trim();
+  const type=(document.getElementById('infoType')?.value||'annonce');
+  const priorite=(document.getElementById('infoPriorite')?.value||'info');
+  const expiration=(document.getElementById('infoExpiration')?.value||'');
   if(!titre || !message){ alert('⚠️ Le titre et le message sont obligatoires.'); return; }
+  if(!gsDisponible()){const s=document.getElementById('sanNewsPublishStatus');if(s)s.textContent='Connexion au service SaniStock indisponible. Réessayez lorsque la connexion sera rétablie.';return;}
+  const statusEl=document.getElementById('sanNewsPublishStatus');if(statusEl)statusEl.textContent='Publication en cours…';
+  const prefix=type==='question'?'[QUESTION] ':type==='idee'?'[IDÉE] ':'[ANNONCE] ';
+  const titreEnregistre=prefix+titre.replace(/^\[(QUESTION|QUESTIONS|ID[ÉE]E|IDEA|ANNONCE)\]\s*/i,'').replace(/^(QUESTION|ID[ÉE]E|ANNONCE)\s*[-—:]\s*/i,'').trim();
   messageParametres('Publication en cours…',true);
   google.script.run.withSuccessHandler(function(){
     document.getElementById('infoTitre').value='';
     document.getElementById('infoMessage').value='';
-    document.getElementById('infoPriorite').value='info';
-    document.getElementById('infoExpiration').value='';
-    messageParametres('📢 Information publiée.',true);
+    const typeEl=document.getElementById('infoType');if(typeEl)typeEl.value='annonce';
+    const prioriteEl=document.getElementById('infoPriorite');if(prioriteEl)prioriteEl.value='info';
+    const expirationEl=document.getElementById('infoExpiration');if(expirationEl)expirationEl.value='';
+    togglePublicationEquipe(false);
+    if(statusEl)statusEl.textContent='✅ Publication enregistrée.';
     fermerInformationAccueilSilencieux();
     chargerInformationsUI();
-    chargerInformationAccueil();
+    chargerActualitesEquipe(true);
     setTimeout(function(){
       const el=document.getElementById('settingsMsg');
       if(el){ el.textContent=''; el.classList.remove('show'); }
     },3000);
   }).withFailureHandler(function(err){
-    messageParametres('Erreur : '+(err&&err.message?err.message:err),false);
-  }).ajouterInformation(Object.assign(donneesAccesGestion(),{titre:titre,message:message,priorite:priorite,expiration:expiration}));
+    const messageErreur='Impossible de publier : '+(err&&err.message?err.message:err)+' . Vérifiez les droits de publication.';
+    if(statusEl)statusEl.textContent=messageErreur;
+  }).ajouterInformation(Object.assign(donneesAccesGestion(),{titre:titreEnregistre,message:message,priorite:priorite,expiration:expiration}));
 }
 
 function supprimerInformationUI(id){
@@ -4174,109 +4239,15 @@ function supprimerInformationUI(id){
     fermerInformationAccueilSilencieux();
     chargerInformationsUI();
     chargerInformationAccueil();
+    chargerActualitesEquipe(true);
   }).withFailureHandler(function(err){ alert('Erreur : '+(err&&err.message?err.message:err)); })
     .supprimerInformation(Object.assign(donneesAccesGestion(),{id:id}));
 }
 
 function chargerInformationAccueil(){
-  const box=document.getElementById('homeInformation');
-  const modal=document.getElementById('homeInformationModal');
-  if(!gsDisponible()) return;
-
-  // Le compte administrateur qui publie ne reçoit pas sa propre annonce.
-  if(typeof appareilProprietaire==='function' && appareilProprietaire()) return;
-
-  google.script.run.withSuccessHandler(function(r){
-    if(Array.isArray(r)) r=r.length?r[0]:null;
-
-    if(!r || !r.titre){
-      if(modal){ modal.classList.remove('show'); modal.setAttribute('aria-hidden','true'); }
-      if(box){ box.classList.remove('show'); box.innerHTML=''; }
-      return;
-    }
-
-    const idInfo=String(r.id||'');
-    if(!idInfo) return;
-
-    // Si cette annonce a déjà été lue sur cet appareil par ce salarié,
-    // elle ne doit plus jamais réapparaître, même après reconnexion.
-    const nomSalarie=localStorage.getItem('sanistock_employee_name')||'visiteur';
-    const cleLecture='sanistock_information_lue_'+nomSalarie.toLowerCase().replace(/\s+/g,'_');
-    let informationsLues=[];
-    try{ informationsLues=JSON.parse(localStorage.getItem(cleLecture)||'[]'); }catch(e){ informationsLues=[]; }
-    if(informationsLues.map(String).indexOf(idInfo)>=0){
-      if(modal){ modal.classList.remove('show'); modal.style.display='none'; modal.setAttribute('aria-hidden','true'); }
-      if(box){ box.classList.remove('show'); box.style.display='none'; box.innerHTML=''; }
-      return;
-    }
-
-    const p=String(r.priorite||'info');
-    const icon=p==='urgent'?'🔴':p==='important'?'🟠':'📢';
-
-    if(modal){
-      modal.style.display='flex';
-
-      const badge=document.getElementById('homeInfoModalBadge');
-      const title=document.getElementById('homeInfoModalTitle');
-      const text=document.getElementById('homeInfoModalText');
-      const meta=document.getElementById('homeInfoModalMeta');
-      const b=document.getElementById('homeInfoModalReadBtn');
-
-      if(badge) badge.textContent=icon+' '+(p==='urgent'?'URGENT':p==='important'?'IMPORTANT':'INFORMATION');
-      if(title) title.textContent=String(r.titre||'');
-      if(text) text.textContent=String(r.message||'');
-      if(meta) meta.textContent='Information publiée par SaniStock';
-
-      if(b){
-        b.disabled=false;
-        b.onclick=function(ev){
-          ev.preventDefault();
-          ev.stopPropagation();
-          marquerInformationLue(idInfo);
-        };
-        b.ontouchend=function(ev){
-          ev.preventDefault();
-          ev.stopPropagation();
-          marquerInformationLue(idInfo);
-        };
-        b.style.pointerEvents='auto';
-        b.style.position='relative';
-        b.style.zIndex='1000002';
-      }
-
-      modal.classList.add('show');
-      modal.setAttribute('aria-hidden','false');
-    }
-  }).withFailureHandler(function(err){
-    console.warn('Annonce SaniStock indisponible:', err);
-  }).getInformations(null,false);
+  // Les informations ne s’affichent plus en popup au démarrage. Elles sont consultables dans « Esprit d’équipe ».
+  fermerInformationAccueilSilencieux();
 }
-
-/* Vérification régulière des nouvelles annonces pour les comptes salariés. */
-(function(){
-  let timerAnnonceSaniStock=null;
-
-  function verifierAnnonceSaniStock(){
-    try{
-      if(typeof chargerInformationAccueil==='function'){
-        chargerInformationAccueil();
-      }
-    }catch(e){}
-  }
-
-  window.addEventListener('load',function(){
-    setTimeout(verifierAnnonceSaniStock,1200);
-    timerAnnonceSaniStock=setInterval(verifierAnnonceSaniStock,15000);
-  });
-
-  document.addEventListener('visibilitychange',function(){
-    if(!document.hidden) setTimeout(verifierAnnonceSaniStock,500);
-  });
-
-  window.addEventListener('focus',function(){
-    setTimeout(verifierAnnonceSaniStock,500);
-  });
-})();
 
 function fermerInformationAccueilSilencieux(){
   const box=document.getElementById('homeInformation');
@@ -4862,9 +4833,6 @@ function changerCodeAdminUI(){
 
 document.getElementById('settingsBtn').addEventListener('click',ouvrirParametres);
 document.getElementById('settingsOverlay').addEventListener('click',function(e){if(e.target===this)fermerParametres()});
-setTimeout(chargerInformationAccueil,1200);
-setTimeout(chargerInformationAccueil,3000);
-setTimeout(chargerInformationAccueil,6000);
 </script>
 
 
@@ -10111,85 +10079,6 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 
-
-<style id="sanistock-annonce-modal-css">
-#homeInformationModal{
-  position:fixed !important;
-  inset:0 !important;
-  z-index:999999 !important;
-  display:none;
-  align-items:center;
-  justify-content:center;
-  padding:20px;
-  background:rgba(0,0,0,.72);
-}
-#homeInformationModal.show{display:flex !important}
-#homeInformationModal .sanistockInfoCard{
-  width:min(92vw,460px);
-  max-height:82vh;
-  overflow:auto;
-  background:#fff;
-  color:#173f68;
-  border-radius:22px;
-  padding:22px;
-  box-shadow:0 12px 45px rgba(0,0,0,.38);
-  text-align:left;
-  border:3px solid #0757a0;
-}
-#homeInformationModalBadge{
-  display:inline-block;
-  margin-bottom:8px !important;
-  padding:7px 11px;
-  border-radius:999px;
-  background:#eaf3fb;
-  color:#0757a0;
-  font-weight:900;
-  font-size:12px;
-}
-#homeInformationModalTitle{
-  margin:28px 0 22px !important;
-  font-size:22px;
-  line-height:1.15;
-  font-weight:900;
-}
-#homeInformationModalText{
-  margin-top:0 !important;
-  padding-top:0 !important;
-  white-space:pre-wrap;
-  font-size:15px;
-  line-height:1.45;
-  color:#263b50;
-}
-#homeInformationModalMeta{
-  margin-top:13px;
-  font-size:11px;
-  color:#71879a;
-}
-#homeInfoModalReadBtn{
-  width:100%;
-  margin-top:18px;
-  border:0;
-  border-radius:13px;
-  padding:13px 16px;
-  background:#0757a0;
-  color:#fff;
-  font-size:15px;
-  font-weight:900;
-  cursor:pointer;
-  touch-action:manipulation;
-}
-</style>
-
-
-<div id="homeInformationModal" aria-hidden="true">
-  <div class="sanistockInfoCard" role="dialog" aria-modal="true" aria-labelledby="homeInfoModalTitle">
-    <div id="homeInfoModalBadge">📢 INFORMATION</div>
-    <div id="homeInfoModalTitle">Information SaniStock</div>
-    <div id="homeInfoModalText"></div>
-    <div id="homeInfoModalMeta"></div>
-    <button id="homeInfoModalReadBtn" type="button">✓ J’AI LU</button>
-  </div>
-</div>
 
 <div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.61</div>
 
